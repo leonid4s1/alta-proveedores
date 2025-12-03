@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel interno - Proveedores</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tus estilos globales -->
+  <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+  <div class="panel-container">
+    <h1>Panel interno - Proveedores</h1>
+
+    <div class="filters">
+      <div>
+        <label for="filtroEstatus">Estatus:</label>
+        <select id="filtroEstatus">
+          <option value="">Todos</option>
+          <option value="pendiente_revision">Pendiente de revisión</option>
+          <option value="aprobado">Aprobado</option>
+          <option value="rechazado">Rechazado</option>
+        </select>
+      </div>
+
+      <button id="btnRefrescar" class="btn">Refrescar</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Nombre / Razón social</th>
+          <th>RFC</th>
+          <th>Estatus</th>
+          <th>Creado en</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaProveedores">
+        <!-- Las filas de proveedores se insertarán aquí dinámicamente -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="/public/js/panel.js"></script>
+</body>
+</html>

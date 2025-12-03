@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Alta de Proveedores</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+  <h1>Alta de Proveedores</h1>
+
+  <label for="tipoProveedor">Selecciona el tipo de proveedor:</label>
+  <select id="tipoProveedor" name="tipoProveedor">
+    <option value="">-- Selecciona --</option>
+    <option value="fisica">Persona Física</option>
+    <option value="moral">Persona Moral</option>
+  </select>
+
+  <!-- Contenedor donde realmente va el formulario -->
+  <div id="formContainer"></div>
+
+  <script src="/public/js/formulario.js"></script>
+</body>
+</html>

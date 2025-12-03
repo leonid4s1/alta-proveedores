@@ -1,0 +1,214 @@
+const { response } = require("express");
+
+// src/public/js/panel.js
+document.addEventListener('DOMContentLoaded', () => {
+  const tablaBody = document.getElementById("tablaProveedores");
+  const filtroEstatus = document.getElementById("filtroEstatus");
+  const btnRefrescar = document.getElementById("btnRefrescar");
+
+  let proveedores = [];
+
+  // Cargar todos los proveedores desde la API
+  async function cargarProveedores() {
+    try {
+      const resp = await fetch("/api/proveedores");
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        console.error(data);
+        alert(data.message || "Error al cargar los proveedores.");
+        return;
+      }
+
+      proveedores = data.proveedores || [];
+      renderTabla();
+    } catch (error) {
+      console.error(error);
+      alert("Error de red al cargar los proveedores.");
+    }
+  }
+
+  // Renderizar la tabla segun filtro
+  function renderTabla() {
+    const estatusFiltro = filtroEstatus.value;
+    tablaBody.innerHTML = "";
+
+    const lista = estatusFiltro
+      ? proveedores.filter((p) => p.estatus === estatusFiltro)
+      : proveedores;
+
+    if (lista.length === 0) {
+      tablaBody.innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center">No hay proveedores para mostrar.</td>
+        </tr>
+      `;
+      return;      
+    }
+
+    lista.forEach((p) => {
+      const tr = document.createElement("tr");
+
+      const tipo = p.tipo || "";
+      const esMoral = tipo === "moral";
+
+      // Nombre o Razón Social
+      const nombre = esMoral
+        ? (p.datosGenerales?.razonSocial || "")
+        : [
+          p.datosGenerales?.apellidoPaterno || "",
+          p.datosGenerales?.apellidoMaterno || "",
+          p.datosGenerales?.nombre || "",
+        ]
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+      const rfc = p.datosGenerales?.rfc || "";
+      const estatus = p.estatus || "pendiente_revision";
+      const creadoEn = p.creadoEn ? formatearFecha(p.creadoEn) : "";
+
+      tr.innerHTML = `
+        <td>${tipo}</td>
+        <td>${nombre}</td>
+        <td>${rfc}</td>
+        <td>
+          <span class="status-pill status-${estatus}">
+            ${mapEstatusTexto(estatus)}
+          </span>
+        </td>
+        <td>${creadoEn}</td>
+        <td>
+          <div class="acciones">
+            <select data-id="${p._id}" class="select-status">
+              <option value="pendiente_revision" ${
+                estatus === "pendiente_revision" ? "selected" : ""
+              }>Pendiente</option>
+              <option value="aprobado" ${
+                estatus === "aprobado" ? "selected" : ""
+              }>Aprobado</option>
+              <option value="rechazado" ${
+                estatus === "rechazado" ? "selected" : ""
+              }>Rechazado</option>
+            </select>
+            <button class="btn btn-primary btn-sm btn-guardar-estatus" data-id="${p._id}">
+              Guardar
+            </button>
+
+            ${
+              p.driveFolderId
+                ? `<button class="btn btn-sm btn-ver-drive" data-folder="${p.driveFolderId}">
+                    Ver en carpeta
+                  </button>`
+                : ""
+            }
+          </div>
+        </td>
+      `;
+    
+      tablaBody.appendChild(tr);
+    });
+    
+    // Eventos de acciones despues de renderizar
+    document
+      .querySelectorAll(".btn-guardar-estatus")
+      .forEach((btn) => btn.addEventListener("click", onGuardarEstatusClick));
+
+    document
+      .querySelectorAll(".btn-ver-drive")
+      .forEach((btn) => btn.addEventListener("click", onVerDriveClick));
+  }
+
+  function mapEstatusTexto(estatus) {
+    switch (estatus) {
+      case "pendiente_revision":
+        return "Pendiente de Revisión";
+      case "aprobado":
+        return "Aprobado";
+      case "rechazado":
+        return "Rechazado";
+      default:
+        return estatus;
+    }
+  }
+
+  // Manejar Timestamp de Firestore ({ _seconds, _nanoseconds }) o ISO string
+  function formatearFecha(fechaFirestore) {
+    try {
+      if (fechaFirestore && typeof fechaFirestore === "object" && "_seconds" in fechaFirestore) {
+        const d = new Date(fechaFirestore._seconds * 1000);
+        return d.toLocaleDateString();
+      }
+      const d = new Date(fechaFirestore);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleString();
+      }
+    } catch (e) {
+      console.error("Error al formateando fecha:", e);
+    }
+    return "";
+  }
+
+  async function onGuardarEstatusClick(event) {
+    const id = event.target.getAttribute("data-id");
+    const select = document.querySelector(`.select-status[data-id="${id}"]`);
+    if (!id || !select) return;
+
+    const nuevoEstatus = select.value;
+
+    if (
+      !confirm(
+        `¿Cambiar estatus de este proveedor a "${mapEstatusTexto(
+          nuevoEstatus
+        )}"?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const resp = await fetch(`/api/proveedores/${id}/estatus`, {
+        method: "PATHCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ estatus: nuevoEstatus }),
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        console.error(data);
+        alert(data.message || "Error al actualizar el estatus.");
+        return;
+      }
+
+      alert("Estatus actualizado correctamente.");
+
+      // Actualizar localmente y re-renderizar
+      const idx = proveedores.findIndex((p) => p.id === id);
+      if (idx !== -1 && data.proveedor) {
+        proveedores[idx] = data.proveedor;
+      }
+      renderTabla();
+    } catch (error) {
+      console.error(error);
+      alert("Error de red al actualizar el estatus.");
+    }
+  }
+
+  function onVerDriveClick(event) {
+    const folderId = event.target.getAttribute("data-folder");
+    if (!folderId) return;
+
+    const url = `https://drive.google.com/drive/folders/${folderId}`;
+    window.open(url, "_blank");
+  }
+
+  // Eventos globales
+  filtroEstatus.addEventListener("change", renderTabla);
+  btnRefrescar.addEventListener("click", cargarProveedores);
+
+  // Caragar al entrar
+  cargarProveedores();
+});

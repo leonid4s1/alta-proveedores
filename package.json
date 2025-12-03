@@ -1,0 +1,24 @@
+{
+  "name": "alta-proveedores",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": [],
+  "author": "Torres Leonardo",
+  "license": "ISC",
+  "description": "Formulario de alta de proveedores con subida de archivos a Firebase Storage y datos a Google Sheets. Diseñado para Odes Construction",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.6.0",
+    "googleapis": "^166.0.0",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
