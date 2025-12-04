@@ -276,3 +276,19 @@ tr:hover td {
     align-items: flex-start;
   }
 }
+
+.pagination {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 0.8rem;
+}
+
+.pagination button[disabled] {
+  opacity: 0.4;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}

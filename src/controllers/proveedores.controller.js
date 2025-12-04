@@ -1,4 +1,5 @@
 // src/controllers/proveedores.controller.js
+const PDFDocument = require('pdfkit');
 const { crearProveedor,
         listarProveedores,
         obtenerProveedorPorId,
@@ -24,7 +25,11 @@ async function crearProveedorController(req, res, next) {
       proveedor: nuevoProveedor
     });
   } catch (error) {
-    next(error); // lo recoge el middleware de errores en app.js
+      // Si viene del check de duplicados, ya tiene status 409
+      if (error.code === 'PROVEEDOR_DUPLICADO') {
+        return res.status(error.status || 409).json({ message: error.message });
+      }
+    next(error);
   }
 }
 
@@ -95,10 +100,99 @@ async function eliminarProveedorController(req, res, next) {
   }
 }
 
+// GET /api/proveedores/:id/hoja -> Generar PDF
+async function generarHojaProveedorController(req, res, next) {
+  try {
+    const { id } = req.params;
+    const proveedor = await obtenerProveedorPorId(id);
+
+    if (!proveedor) {
+      return res.status(404).json({ message: 'Proveedor no encontrado' });
+    }
+
+    const rfc = proveedor.datosGenerales?.rfc || 'SIN_RFC';
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `inline; filename="hoja_proveedor_${rfc}.pdf"`
+    );
+    const doc = new PDFDocument({margin: 50});
+
+    doc.pipe(res);
+
+    // Título
+    doc.fontSize(12).text(`Tipo: ${proveedor.tipo || ''}`);
+    if (proveedor.tipo === 'moral') {
+      doc.text(`Razón Social: ${proveedor.datosGenerales?.razonSocial || ''}`);
+    } else {
+      const nombre = [
+        proveedor.datosGenerales?.apellidoPaterno || '',
+        proveedor.datosGenerales?.apellidoMaterno || '',
+        proveedor.datosGenerales?.nombre || ''
+      ]
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      doc.text(`Nombre: ${nombre}`);
+    }
+    doc.text(`RFC: ${rfc}`);
+    doc.text(
+      `Estatus: ${proveedor.estatus || 'pendiente_revision'}`      
+    );
+
+    if (proveedor.creadoEn) {
+      const d = proveedor.creadoEn._seconds
+        ? new Date(proveedor.creadoEn._seconds * 1000)
+        : new Date(proveedor.creadoEn);
+      doc.text(`Creado en: ${d.toLocaleDateString()}`);
+    }
+
+    doc.moveDown();
+
+    // Domicilio fiscal
+    const dom = proveedor.domicilioFiscal || {};
+    doc.fontSize(14).text('Domicilio Fiscal', { underline: true });
+    doc.fontSize(12);
+    doc.text(`Calle: ${dom.calle || ''}`);
+    doc.text(`Número Exterior: ${dom.numeroExterior || ''}`);
+    doc.text(`Número Interior: ${dom.numeroInterior || ''}`);
+    doc.text(`CP: ${dom.cp || ''}`);
+    doc.text(`Colonia / Asentamiento: ${dom.colonia || ''}`);
+    doc.text(`Municipio / Alcaldía: ${dom.municipio || ''}`);
+    doc.text(`Estado: ${dom.estado || ''}`);
+    doc.text(`País: ${dom.pais || ''}`);
+
+    doc.moveDown();
+
+    // Contacto
+    const contacto = proveedor.contacto || {};
+    doc.fontSize(14).text('Contacto', { underline: true });
+    doc.fontSize(12);
+    doc.text(`Correo: ${contacto.email || ''}`);
+    doc.text(`Teléfono: ${contacto.telefono || ''}`);
+
+    doc.moveDown();
+
+    // Bancario
+    const bancario = proveedor.bancario || {};
+    doc.fontSize(14).text('Datos Bancarios', { underline: true });
+    doc.fontSize(12);
+    doc.text(`Banco: ${bancario.banco || ''}`);
+    doc.text(`Cuenta: ${bancario.cuenta || ''}`);
+    doc.text(`CLABE: ${bancario.clabe || ''}`);
+
+    doc.end();
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   crearProveedorController,
   obtenerProveedoresController,
   obtenerProveedorPorIdController,
   actualizarEstatusProveedorController,
-  eliminarProveedorController
+  eliminarProveedorController,
+  generarHojaProveedorController
 };

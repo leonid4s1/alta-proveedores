@@ -1,4 +1,5 @@
 // src/services/proveedores.service.js
+const { query } = require('express');
 const db = require('../config/firestore');
 const { buildProveedor } = require('../models/proveedor.model');
 const { crearCarpetaProveedor,
@@ -12,12 +13,28 @@ const COLLECTION = 'proveedores';
 async function crearProveedor(data, archivos = []) {
   const proveedor = buildProveedor(data);
 
+  // Validacion que no exista un proveedor con el mismo RFC
+  const rfc = proveedor?.datosGenerales?.rfc || null;
+
+  if (rfc) {
+    const dupSnapshot = await db
+      .collection(COLLECTION)
+      .where('datosGenerales.rfc', '==', rfc)
+      .limit(1)
+      .get();
+
+    if (!dupSnapshot.empty) {
+      const err = new Error('Ya existe un proveedor con el mismo RFC');
+      err.status = 409;
+      err.code = 'PROVEEDOR_DUPLICADO';
+      throw err;
+    }
+  }
+
   // Nombre de carpeta: RFC_tipo_fecha
-  const rfc = proveedor.datosGenerales.rfc || 'SIN_RFC';
   const tipo = proveedor.tipo || 'SIN_TIPO';
   const timestamp = new Date().toISOString().substring(0, 19).replace(/[:T]/g, '-');
-
-  const nombreCarpeta = `${rfc}_${tipo}_${timestamp}`;
+  const nombreCarpeta = `${rfc || 'SIN_RFC'}_${tipo}_${timestamp}`;
 
   // 1) Crear carpeta en Drive
   const carpeta = await crearCarpetaProveedor(nombreCarpeta);

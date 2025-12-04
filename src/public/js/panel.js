@@ -3,10 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const tablaBody = document.getElementById("tablaProveedores");
   const filtroEstatus = document.getElementById("filtroEstatus");
   const btnRefrescar = document.getElementById("btnRefrescar");
+  const btnPrev = document.getElementById("btnPrev");
+  const btnNext = document.getElementById("btnNext");
+  const pageInfo = document.getElementById("pageInfo"); // 👈 ojo al ID
 
   let proveedores = [];
+  let paginaActual = 1;
+  const pageSize = 10;
 
-  // Cargar todos los proveedores desde la API
+  // ================================
+  // CARGAR PROVEEDORES
+  // ================================
   async function cargarProveedores() {
     try {
       const resp = await fetch("/api/proveedores");
@@ -19,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       proveedores = data.proveedores || [];
+      paginaActual = 1; // reset al cargar
       renderTabla();
     } catch (error) {
       console.error(error);
@@ -26,28 +34,51 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Renderizar la tabla según filtro
+  // ================================
+  // RENDER TABLA + PAGINACIÓN
+  // ================================
   function renderTabla() {
     const estatusFiltro = filtroEstatus.value;
     tablaBody.innerHTML = "";
 
-    const lista =
+    const listaFiltrada =
       estatusFiltro && estatusFiltro !== "todos"
         ? proveedores.filter((p) => p.estatus === estatusFiltro)
         : proveedores;
 
-    if (lista.length === 0) {
+    if (listaFiltrada.length === 0) {
       tablaBody.innerHTML = `
         <tr>
           <td colspan="6" class="text-center">No hay proveedores para mostrar.</td>
         </tr>
       `;
+      pageInfo.textContent = "Página 0 de 0";
+      btnPrev.disabled = true;
+      btnNext.disabled = true;
       return;
     }
 
-    lista.forEach((p) => {
-      const tr = document.createElement("tr");
+    const totalPages = Math.max(
+      1,
+      Math.ceil(listaFiltrada.length / pageSize)
+    );
 
+    // Aseguramos que la página actual esté dentro de los límites
+    if (paginaActual > totalPages) paginaActual = totalPages;
+    if (paginaActual < 1) paginaActual = 1;
+
+    const start = (paginaActual - 1) * pageSize;
+    const end = start + pageSize;
+    const pagina = listaFiltrada.slice(start, end);
+
+    // Info de página
+    pageInfo.textContent = `Página ${paginaActual} de ${totalPages}`;
+    btnPrev.disabled = paginaActual === 1;
+    btnNext.disabled = paginaActual === totalPages;
+
+    // Render de la página actual
+    pagina.forEach((p) => {
+      const tr = document.createElement("tr");
       const tipo = p.tipo || "";
       const esMoral = tipo === "moral";
 
@@ -80,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${creadoEn}</td>
         <td>
           <div class="acciones">
-            <select data-id="${p.id}" class="select-status">
+            <select data-id="${id}" class="select-status">
               <option value="pendiente_revision" ${
                 estatus === "pendiente_revision" ? "selected" : ""
               }>Pendiente</option>
@@ -92,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
               }>Rechazado</option>
             </select>
 
-            <button class="btn btn-primary btn-sm btn-guardar-estatus" data-id="${p.id}">
+            <button class="btn btn-primary btn-sm btn-guardar-estatus" data-id="${id}">
               Guardar
             </button>
 
@@ -104,9 +135,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 : ""
             }
 
-            <!-- Boton eliminar proveedor -->
-            <button class ="btn btn-sm btn-eliminar" data-id="${id}">
+            <button class="btn btn-sm btn-eliminar" data-id="${id}">
               Eliminar
+            </button>
+
+            <button class="btn btn-sm btn-pdf" data-id="${id}">
+              Hoja PDF
             </button>
           </div>
         </td>
@@ -127,6 +161,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document
       .querySelectorAll(".btn-eliminar")
       .forEach((btn) => btn.addEventListener("click", onEliminarClick));
+
+    document
+      .querySelectorAll(".btn-pdf")
+      .forEach((btn) => btn.addEventListener("click", onPdfClick));
   }
 
   function mapEstatusTexto(estatus) {
@@ -163,6 +201,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return "";
   }
 
+  // ================================
+  // ACTUALIZAR ESTATUS
+  // ================================
   async function onGuardarEstatusClick(event) {
     const id = event.target.getAttribute("data-id");
     const select = document.querySelector(`.select-status[data-id="${id}"]`);
@@ -211,12 +252,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // DELETE proveedor
+  // ================================
+  // ELIMINAR PROVEEDOR
+  // ================================
   async function onEliminarClick(event) {
     const id = event.target.getAttribute("data-id");
     if (!id) return;
 
-    if (!confirm("¿Estás seguro de eliminar este proveedor? Esta acción no se puede deshacer.")) {
+    if (
+      !confirm(
+        "¿Estás seguro de eliminar este proveedor? Esta acción no se puede deshacer."
+      )
+    ) {
       return;
     }
 
@@ -244,6 +291,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // ================================
+  // VER CARPETA DE DRIVE
+  // ================================
   function onVerDriveClick(event) {
     const folderId = event.target.getAttribute("data-folder");
     if (!folderId) return;
@@ -252,9 +302,37 @@ document.addEventListener("DOMContentLoaded", () => {
     window.open(url, "_blank");
   }
 
-  // Eventos globales
-  filtroEstatus.addEventListener("change", renderTabla);
+  // ================================
+  // VER PDF (HOJA DE REGISTRO)
+  // ================================
+  function onPdfClick(event) {
+    const id = event.target.getAttribute("data-id");
+    if (!id) return;
+    const url = `/api/proveedores/${id}/hoja`;
+    window.open(url, "_blank");
+  }
+
+  // ================================
+  // EVENTOS GLOBALES
+  // ================================
+  filtroEstatus.addEventListener("change", () => {
+    paginaActual = 1;
+    renderTabla();
+  });
+
   btnRefrescar.addEventListener("click", cargarProveedores);
+
+  btnPrev.addEventListener("click", () => {
+    if (paginaActual > 1) {
+      paginaActual--;
+      renderTabla();
+    }
+  });
+
+  btnNext.addEventListener("click", () => {
+    paginaActual++;
+    renderTabla();
+  });
 
   // Cargar al entrar
   cargarProveedores();

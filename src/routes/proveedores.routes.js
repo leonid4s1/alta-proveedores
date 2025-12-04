@@ -8,7 +8,8 @@ const {
     obtenerProveedoresController,
     obtenerProveedorPorIdController,
     actualizarEstatusProveedorController,
-    eliminarProveedorController
+    eliminarProveedorController,
+    generarHojaProveedorController
 } = require('../controllers/proveedores.controller');
 
 // POST /api/proveedores -> alta con PDFs
@@ -16,6 +17,9 @@ router.post('/', uploadDocsMiddleware, crearProveedorController);
 
 // GET /api/proveedores -> listar todos los proveedores
 router.get('/', obtenerProveedoresController);
+
+// Generate PDF hoja de proveedor
+router.get('/:id/hoja', generarHojaProveedorController);
 
 // GET /api/proveedores/:id -> detalle
 router.get('/:id', obtenerProveedorPorIdController);
