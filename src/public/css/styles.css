@@ -287,3 +287,35 @@ tr:hover td {
   box-shadow: none;
   transform: none;
 }
+
+/* Botones específicos del panel */
+
+.btn-drive {
+  background: #22c55e;      /* verde */
+  border-color: #16a34a;
+  color: #ffffff;
+}
+
+.btn-drive:hover {
+  background: #16a34a;
+}
+
+.btn-danger {
+  background: #ef4444;      /* rojo */
+  border-color: #b91c1c;
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.btn-pdf {
+  background: #3b82f6;      /* azul */
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-pdf:hover {
+  background: #2563eb;
+}

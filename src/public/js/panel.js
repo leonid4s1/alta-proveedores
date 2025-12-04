@@ -5,11 +5,39 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnRefrescar = document.getElementById("btnRefrescar");
   const btnPrev = document.getElementById("btnPrev");
   const btnNext = document.getElementById("btnNext");
-  const pageInfo = document.getElementById("pageInfo"); // 👈 ojo al ID
+  const pageInfo = document.getElementById("pageInfo");
+  const buscador = document.getElementById("buscador");
 
   let proveedores = [];
   let paginaActual = 1;
   const pageSize = 10;
+
+  // ================================
+  // Helpers de nombre / RFC
+  // ================================
+  function getNombreProveedor(p) {
+    const tipo = p.tipo || "";
+    const esMoral = tipo === "moral";
+
+    if (esMoral) {
+      return (p.datosGenerales?.razonSocial || "").trim();
+    }
+
+    return (
+      [
+        p.datosGenerales?.apellidoPaterno || "",
+        p.datosGenerales?.apellidoMaterno || "",
+        p.datosGenerales?.nombre || "",
+      ]
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim() || ""
+    );
+  }
+
+  function getRfcProveedor(p) {
+    return p.datosGenerales?.rfc || "";
+  }
 
   // ================================
   // CARGAR PROVEEDORES
@@ -39,12 +67,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // ================================
   function renderTabla() {
     const estatusFiltro = filtroEstatus.value;
+    const query = (buscador.value || "").trim().toLowerCase();
     tablaBody.innerHTML = "";
 
-    const listaFiltrada =
+    // 1) Filtrar por estatus
+    let listaFiltrada =
       estatusFiltro && estatusFiltro !== "todos"
         ? proveedores.filter((p) => p.estatus === estatusFiltro)
-        : proveedores;
+        : proveedores.slice();
+
+    // 2) Filtrar por buscador (RFC o Nombre/Razón Social)
+    if (query) {
+      listaFiltrada = listaFiltrada.filter((p) => {
+        const nombre = getNombreProveedor(p).toLowerCase();
+        const rfc = getRfcProveedor(p).toLowerCase();
+        return nombre.includes(query) || rfc.includes(query);
+      });
+    }
 
     if (listaFiltrada.length === 0) {
       tablaBody.innerHTML = `
@@ -79,22 +118,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Render de la página actual
     pagina.forEach((p) => {
       const tr = document.createElement("tr");
+
       const tipo = p.tipo || "";
-      const esMoral = tipo === "moral";
-
-      // Nombre o Razón Social
-      const nombre = esMoral
-        ? p.datosGenerales?.razonSocial || ""
-        : [
-            p.datosGenerales?.apellidoPaterno || "",
-            p.datosGenerales?.apellidoMaterno || "",
-            p.datosGenerales?.nombre || "",
-          ]
-            .join(" ")
-            .replace(/\s+/g, " ")
-            .trim();
-
-      const rfc = p.datosGenerales?.rfc || "";
+      const nombre = getNombreProveedor(p);
+      const rfc = getRfcProveedor(p);
       const estatus = p.estatus || "pendiente_revision";
       const creadoEn = p.creadoEn ? formatearFecha(p.creadoEn) : "";
       const id = p.id || "";
@@ -316,6 +343,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // EVENTOS GLOBALES
   // ================================
   filtroEstatus.addEventListener("change", () => {
+    paginaActual = 1;
+    renderTabla();
+  });
+
+  buscador.addEventListener("input", () => {
     paginaActual = 1;
     renderTabla();
   });
