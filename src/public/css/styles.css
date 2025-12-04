@@ -290,13 +290,13 @@ tr:hover td {
 
 /* Botones específicos del panel */
 
-.btn-btn-ver-drive {
+.btn-ver-drive {
   background: #22c55e;      /* verde */
   border-color: #16a34a;
   color: #ffffff;
 }
 
-.btn-btn-ver-drive:hover {
+.btn-ver-drive:hover {
   background: #16a34a;
 }
 
