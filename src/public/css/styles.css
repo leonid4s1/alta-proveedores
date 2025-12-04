@@ -290,23 +290,23 @@ tr:hover td {
 
 /* Botones específicos del panel */
 
-.btn-drive {
+.btn-btn-ver-drive {
   background: #22c55e;      /* verde */
   border-color: #16a34a;
   color: #ffffff;
 }
 
-.btn-drive:hover {
+.btn-btn-ver-drive:hover {
   background: #16a34a;
 }
 
-.btn-danger {
+.btn-eliminar {
   background: #ef4444;      /* rojo */
   border-color: #b91c1c;
   color: #ffffff;
 }
 
-.btn-danger:hover {
+.btn-eliminar:hover {
   background: #dc2626;
 }
 
