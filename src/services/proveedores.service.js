@@ -5,6 +5,7 @@ const { crearCarpetaProveedor, subirPdfACarpeta } = require('./drive.service');
 
 const COLLECTION = 'proveedores';
 
+// Crear proveedor + carpeta en Drive + subir PDFs
 async function crearProveedor(data, archivos = []) {
   const proveedor = buildProveedor(data);
 
@@ -52,13 +53,14 @@ async function crearProveedor(data, archivos = []) {
 
 // Listado de proveedores
 async function listarProveedores() {
-  const snapshot = await db.collection(COLLECTION)
-    .orderBy('creadoEn', 'desc') // primero los más recientes
+  const snapshot = await db
+    .collection(COLLECTION)
+    .orderBy('creadoEn', 'desc')
     .get();
   
-  return snapshot.docs.map(doc => ({
+  return snapshot.docs.map((doc) => ({
     id: doc.id,
-    ...doc.data()
+    ...doc.data(),
   }));
 }
 
@@ -73,7 +75,7 @@ async function obtenerProveedorPorId(id) {
 
   return {
     id: doc.id,
-    ...doc.data()
+    ...doc.data(),
   };
 }
 
@@ -94,13 +96,14 @@ async function actualizarEstatusProveedor(id, nuevoEstatus) {
 
   await docRef.update({
     estatus: nuevoEstatus,
-    actualizadoEn: new Date()
+    actualizadoEn: new Date(),
   });
 
   const actualizado = await docRef.get();
+
   return {
     id: actualizado.id,
-    ...actualizado.data()
+    ...actualizado.data(),
   };
 }
 

@@ -1,7 +1,5 @@
-const { response } = require("express");
-
 // src/public/js/panel.js
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   const tablaBody = document.getElementById("tablaProveedores");
   const filtroEstatus = document.getElementById("filtroEstatus");
   const btnRefrescar = document.getElementById("btnRefrescar");
@@ -28,14 +26,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Renderizar la tabla segun filtro
+  // Renderizar la tabla según filtro
   function renderTabla() {
     const estatusFiltro = filtroEstatus.value;
     tablaBody.innerHTML = "";
 
-    const lista = estatusFiltro
-      ? proveedores.filter((p) => p.estatus === estatusFiltro)
-      : proveedores;
+    const lista =
+      estatusFiltro && estatusFiltro !== "todos"
+        ? proveedores.filter((p) => p.estatus === estatusFiltro)
+        : proveedores;
 
     if (lista.length === 0) {
       tablaBody.innerHTML = `
@@ -43,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td colspan="6" class="text-center">No hay proveedores para mostrar.</td>
         </tr>
       `;
-      return;      
+      return;
     }
 
     lista.forEach((p) => {
@@ -54,15 +53,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Nombre o Razón Social
       const nombre = esMoral
-        ? (p.datosGenerales?.razonSocial || "")
+        ? p.datosGenerales?.razonSocial || ""
         : [
-          p.datosGenerales?.apellidoPaterno || "",
-          p.datosGenerales?.apellidoMaterno || "",
-          p.datosGenerales?.nombre || "",
-        ]
-          .join(" ")
-          .replace(/\s+/g, " ")
-          .trim();
+            p.datosGenerales?.apellidoPaterno || "",
+            p.datosGenerales?.apellidoMaterno || "",
+            p.datosGenerales?.nombre || "",
+          ]
+            .join(" ")
+            .replace(/\s+/g, " ")
+            .trim();
 
       const rfc = p.datosGenerales?.rfc || "";
       const estatus = p.estatus || "pendiente_revision";
@@ -80,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${creadoEn}</td>
         <td>
           <div class="acciones">
-            <select data-id="${p._id}" class="select-status">
+            <select data-id="${p.id}" class="select-status">
               <option value="pendiente_revision" ${
                 estatus === "pendiente_revision" ? "selected" : ""
               }>Pendiente</option>
@@ -91,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 estatus === "rechazado" ? "selected" : ""
               }>Rechazado</option>
             </select>
-            <button class="btn btn-primary btn-sm btn-guardar-estatus" data-id="${p._id}">
+            <button class="btn btn-primary btn-sm btn-guardar-estatus" data-id="${p.id}">
               Guardar
             </button>
 
@@ -105,11 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </td>
       `;
-    
+
       tablaBody.appendChild(tr);
     });
-    
-    // Eventos de acciones despues de renderizar
+
+    // Eventos de acciones después de renderizar
     document
       .querySelectorAll(".btn-guardar-estatus")
       .forEach((btn) => btn.addEventListener("click", onGuardarEstatusClick));
@@ -135,16 +134,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Manejar Timestamp de Firestore ({ _seconds, _nanoseconds }) o ISO string
   function formatearFecha(fechaFirestore) {
     try {
-      if (fechaFirestore && typeof fechaFirestore === "object" && "_seconds" in fechaFirestore) {
+      if (
+        fechaFirestore &&
+        typeof fechaFirestore === "object" &&
+        "_seconds" in fechaFirestore
+      ) {
         const d = new Date(fechaFirestore._seconds * 1000);
-        return d.toLocaleDateString();
+        return d.toLocaleString("es-MX");
       }
       const d = new Date(fechaFirestore);
       if (!isNaN(d.getTime())) {
-        return d.toLocaleString();
+        return d.toLocaleString("es-MX");
       }
     } catch (e) {
-      console.error("Error al formateando fecha:", e);
+      console.error("Error formateando fecha:", e);
     }
     return "";
   }
@@ -168,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const resp = await fetch(`/api/proveedores/${id}/estatus`, {
-        method: "PATHCH",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
@@ -209,6 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
   filtroEstatus.addEventListener("change", renderTabla);
   btnRefrescar.addEventListener("click", cargarProveedores);
 
-  // Caragar al entrar
+  // Cargar al entrar
   cargarProveedores();
 });
