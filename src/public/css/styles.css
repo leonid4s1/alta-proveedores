@@ -2,11 +2,9 @@
    1) FUENTE CORPORATIVA
    ========================= */
 
-/* Ojo: si tus archivos son .ttf en vez de .otf, cambia la extensión */
-
 @font-face {
   font-family: "Neue Haas Display";
-  src: url("/public/fonts/NeueHaasDisplayRoman.ttf") format("opentype");
+  src: url("/public/fonts/NeueHaasDisplayRoman.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -14,7 +12,8 @@
 
 @font-face {
   font-family: "Neue Haas Display";
-  src: url("/public/fonts/NeueHaasDisplayMedium.ttf") format("opentype");
+  /* OJO: aquí usamos el nombre REAL del archivo: NeueHaasDisplayMediu.ttf */
+  src: url("/public/fonts/NeueHaasDisplayMediu.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -22,15 +21,11 @@
 
 @font-face {
   font-family: "Neue Haas Display";
-  src: url("/public/fonts/NeueHaasDisplayBold.ttf") format("opentype");
+  src: url("/public/fonts/NeueHaasDisplayBold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
-
-/* Si algún nombre no coincide exactamente, revisa la carpeta fonts
-   y ajusta el nombre del archivo (por ejemplo Mediu -> Medium, etc.) */
-
 
 /* =========================
    2) PALETA ODES CONSTRUCTION
