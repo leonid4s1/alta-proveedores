@@ -1,7 +1,10 @@
 // src/services/proveedores.service.js
 const db = require('../config/firestore');
 const { buildProveedor } = require('../models/proveedor.model');
-const { crearCarpetaProveedor, subirPdfACarpeta } = require('./drive.service');
+const { crearCarpetaProveedor,
+        subirPdfACarpeta,
+        eliminarCarpetaProveedor
+      } = require('./drive.service');
 
 const COLLECTION = 'proveedores';
 
@@ -107,9 +110,37 @@ async function actualizarEstatusProveedor(id, nuevoEstatus) {
   };
 }
 
+// Eliminar proveedor y su carpeta en Drive
+async function eliminarProveedor(id) {
+  const docRef = db.collection(COLLECTION).doc(id);
+  const doc = await docRef.get();
+
+  if (!doc.exists) {
+    throw new Error('Proveedor no encontrado');
+  }
+
+  const data = doc.data();
+  const driveFileId = data.driveFolderId;
+
+  // Intentar eliminar la carpeta en Drive (si existe)
+  if (driveFileId) {
+    try {
+      await eliminarCarpetaProveedor(driveFileId);
+    } catch (error) {
+      console.error('Error eliminando carpeta en Drive:', error.message);
+    }
+  }
+
+  // Borrar documento en Firestore
+  await docRef.delete();
+
+  return {id, eliminado: true};
+}
+
 module.exports = {
   crearProveedor,
   listarProveedores,
   obtenerProveedorPorId,
-  actualizarEstatusProveedor
+  actualizarEstatusProveedor,
+  eliminarProveedor
 };

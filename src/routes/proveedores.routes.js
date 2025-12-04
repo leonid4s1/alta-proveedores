@@ -7,7 +7,8 @@ const {
     crearProveedorController,
     obtenerProveedoresController,
     obtenerProveedorPorIdController,
-    actualizarEstatusProveedorController
+    actualizarEstatusProveedorController,
+    eliminarProveedorController
 } = require('../controllers/proveedores.controller');
 
 // POST /api/proveedores -> alta con PDFs
@@ -21,5 +22,8 @@ router.get('/:id', obtenerProveedorPorIdController);
 
 // PATCH /api/proveedores/:id/estatus -> actualizar estatus
 router.patch('/:id/estatus', actualizarEstatusProveedorController);
+
+// DELETE /api/proveedores/:id -> eliminar proveedor
+router.delete('/:id', eliminarProveedorController);
 
 module.exports = router;

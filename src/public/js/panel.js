@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const rfc = p.datosGenerales?.rfc || "";
       const estatus = p.estatus || "pendiente_revision";
       const creadoEn = p.creadoEn ? formatearFecha(p.creadoEn) : "";
+      const id = p.id || "";
 
       tr.innerHTML = `
         <td>${tipo}</td>
@@ -90,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 estatus === "rechazado" ? "selected" : ""
               }>Rechazado</option>
             </select>
+
             <button class="btn btn-primary btn-sm btn-guardar-estatus" data-id="${p.id}">
               Guardar
             </button>
@@ -101,6 +103,11 @@ document.addEventListener("DOMContentLoaded", () => {
                   </button>`
                 : ""
             }
+
+            <!-- Boton eliminar proveedor -->
+            <button class ="btn btn-sm btn-eliminar" data-id="${id}">
+              Eliminar
+            </button>
           </div>
         </td>
       `;
@@ -116,6 +123,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document
       .querySelectorAll(".btn-ver-drive")
       .forEach((btn) => btn.addEventListener("click", onVerDriveClick));
+
+    document
+      .querySelectorAll(".btn-eliminar")
+      .forEach((btn) => btn.addEventListener("click", onEliminarClick));
   }
 
   function mapEstatusTexto(estatus) {
@@ -197,6 +208,39 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error(error);
       alert("Error de red al actualizar el estatus.");
+    }
+  }
+
+  // DELETE proveedor
+  async function onEliminarClick(event) {
+    const id = event.target.getAttribute("data-id");
+    if (!id) return;
+
+    if (!confirm("¿Estás seguro de eliminar este proveedor? Esta acción no se puede deshacer.")) {
+      return;
+    }
+
+    try {
+      const resp = await fetch(`/api/proveedores/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        console.error(data);
+        alert(data.message || "Error al eliminar el proveedor.");
+        return;
+      }
+
+      alert("Proveedor eliminado correctamente.");
+
+      // Borrar de la lista local y re-renderizar
+      proveedores = proveedores.filter((p) => p.id !== id);
+      renderTabla();
+    } catch (error) {
+      console.error(error);
+      alert("Error de red al eliminar el proveedor.");
     }
   }
 

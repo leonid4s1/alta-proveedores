@@ -2,7 +2,8 @@
 const { crearProveedor,
         listarProveedores,
         obtenerProveedorPorId,
-        actualizarEstatusProveedor
+        actualizarEstatusProveedor,
+        eliminarProveedor
       } = require('../services/proveedores.service');
 
 // POST /api/proveedores
@@ -78,9 +79,26 @@ async function actualizarEstatusProveedorController(req, res, next) {
   }
 }
 
+// DETETE /api/proveedores/:id
+async function eliminarProveedorController(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    const resultado = await eliminarProveedor(id);
+
+    return res.status(200).json({
+      message: 'Proveedor eliminado correctamente',
+      ...resultado
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   crearProveedorController,
   obtenerProveedoresController,
   obtenerProveedorPorIdController,
-  actualizarEstatusProveedorController
+  actualizarEstatusProveedorController,
+  eliminarProveedorController
 };

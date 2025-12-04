@@ -47,7 +47,20 @@ async function subirPdfACarpeta(file, folderId) {
   return res.data; // {id, name, webViewLink, webContentLink}
 }
 
+// Eliminar carpeta y su contenido en Drive
+async function eliminarCarpetaProveedor(folderId) {
+  if (!folderId) return;
+
+  const drive = await getDriveClient();
+
+  await drive.files.delete({
+    fileId: folderId,
+    supportsAllDrives: true
+  });
+}
+
 module.exports = {
   crearCarpetaProveedor,
-  subirPdfACarpeta
+  subirPdfACarpeta,
+  eliminarCarpetaProveedor
 };
