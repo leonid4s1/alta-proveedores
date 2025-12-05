@@ -1,3 +1,5 @@
+const { app } = require("firebase-admin");
+
 const tipoSelect = document.getElementById("tipoProveedor");
 const container = document.getElementById("formContainer");
 
@@ -22,6 +24,7 @@ tipoSelect.addEventListener("change", () => {
 
   attachSubmitListener();
   attachUppercaseListeners();
+  attachStepper(tipo);
 });
 
 // =============================
@@ -202,119 +205,315 @@ function validatePersonaMoral(form, errors) {
 }
 
 // =============================
-// FORMULARIO PERSONA FÍSICA
+// ESTADO VISUAL DE INPUTS
 // =============================
+function applyInputState(input, state) {
+  input.classList.remove("input-pending", "input-valid", "input-invalid" );
+
+  if (state === "pending") {
+    input.classList.add("input-pending");
+  } else if (state === "valid") {
+    input.classList.add("input-valid");
+  } else if (state === "invalid") {
+    input.classList.add("input-invalid");
+  }
+}
+
+// Valida un solo campo y devuelve "pending" | "valid" | "invalid" | "none"
+function validateField(input) {
+  // no pintamos file inputs
+  if (input.type === "file") return "none";
+
+  const name = input.name;
+  const rawValue = input.value || "";
+  const value = rawValue.trim();
+  let state = "none";
+
+  // Obligatorio vacio -> pendiente (amarillo)
+  if (input.required && !value) {
+    state = "pending";
+    applyInputState(input, state);
+    return state;
+  }
+
+  // Si no es obligatorio y está vacío -> sin estado
+  if (!input.required && !value) {
+    applyInputState(input, "none");
+    return "none";
+  }
+
+  // A partir de aqui hay contenido, validamos formato
+  let ok = true;
+
+  // Reglas especificcas
+  if (name === "telefono") {
+    ok = /^\d{10}$/.test(value);
+  } else if (name === "cp" || name === "repCp") {
+    ok = /^\d{5}$/.test(value);
+  } else if (name === "clabe") {
+    ok = /^\d{18}$/.test(value);
+  } else if (name === "rfc") {
+    if (tipo === "fisica") ok = value.length === 13;
+    if (tipo === "moral") ok = value.length === 12;
+  } else if (name === "curp" || name === "repCurp") {
+    ok = value.length === 18;
+  } else if (name === "repRfc") {
+    ok = value.length === 13;
+  }
+
+  state = ok ? "valid" : "invalid";
+  applyInputState(input, state);
+  return state;
+}
+
+// =============================
+// STEPPER POR SECCIONES
+// =============================
+function attachStepper(tipo) {
+  if (!currentForm) return;
+
+  const sections = currentForm.querySelectorAll(".form-section");
+
+  if (!sections.length) return;
+
+  // Colapsar todas menos la primera
+  sections.forEach((sec, idx) => {
+    if (idx === 0) {
+      sec.classList.remove("collapsed");
+    } else {
+      sec.classList.add("collapsed");
+    }
+  });
+
+  // Validacion por campo (blur / input)
+  const inputs = currentForm.querySelectorAll("input, select, textarea");
+  inputs.forEach((input) => {
+    if (input.type === "file") return;
+
+    input.addEventListener("blur", () => validateField(tipo, input));
+    input.addEventListener("input", () => validateField(tipo, input));
+  });
+
+  // Botones "Guardar y continuar"
+  const nextButtons = currentForm.querySelectorAll(".btn-next-section");
+  nextButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const currentId = btn.closest(".form-section")?.dataset.sectionId;
+      const nextId = btn.dataset.next;
+
+      if (!currentId || !nextId) return;
+
+      const ok = validateSection(tipo, currentId);
+      if (!ok) {
+        alert("Revisa los campos marcados en rojo o amarillo");
+        return;
+      }
+
+      const currentSec = currentForm.querySelector(
+        `.form-section[data-section-id="${currentId}"]`
+      );
+      const nextSec = currentForm.querySelector(
+        `.form-section[data-section-id="${nextId}"]`
+      );
+
+      if (currentSec) currentSec.classList.add("collapsed");
+      if (nextSec) nextSec.classList.remove("collapsed");
+
+      // Llevar scroll al inicio de las siguiente seccion
+      if (nextSec) {
+        nextSec.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  });
+}
+
+// Valida todos los camspos de una seccion
+function validateSection(tipo, sectionId) {
+  if (!currentForm) return false;
+
+  const section = currentForm.querySelector(
+    `.form-section[data-section-id="${sectionId}"]`
+  );
+  if (!section) return false;
+
+  const inputs = section.querySelectorAll("input, select, textarea");
+  let hasError = false;
+
+  inputs.forEach((input) => {
+    const state = validateField(tipo, input);
+    if (input.required && state !== "valid") {
+      hasError = true;
+    }
+  });
+
+  return !hasError;
+}
+
 function renderPersonaFisica() {
   return `
     <form id="formProveedor" enctype="multipart/form-data">
-      <h2>Datos de Persona Física</h2>
 
-      <label>Apellido paterno:</label>
-      <input type="text" name="apellidoPaterno" required />
+      <!-- Sección 1: Datos de persona física -->
+      <div class="form-section" data-section-id="pf-datos">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">1</span>
+            <h3>Datos de Persona Física</h3>
+          </div>
+        </div>
+        <div class="form-section-body">
+          <label>Apellido paterno:</label>
+          <input type="text" name="apellidoPaterno" required />
 
-      <label>Apellido materno:</label>
-      <input type="text" name="apellidoMaterno" />
+          <label>Apellido materno:</label>
+          <input type="text" name="apellidoMaterno" />
 
-      <label>Nombre:</label>
-      <input type="text" name="nombre" required />
+          <label>Nombre:</label>
+          <input type="text" name="nombre" required />
 
-      <label>Otros nombres:</label>
-      <input type="text" name="otrosNombres" />
+          <label>Otros nombres:</label>
+          <input type="text" name="otrosNombres" />
 
-      <label>RFC:</label>
-      <input type="text" name="rfc" maxlength="13" required />
+          <label>RFC:</label>
+          <input type="text" name="rfc" maxlength="13" required />
 
-      <label>CURP:</label>
-      <input type="text" name="curp" maxlength="18" required/>
+          <label>CURP:</label>
+          <input type="text" name="curp" maxlength="18" required/>
 
-      <h3>Domicilio fiscal</h3>
-
-      <label>Calle:</label>
-      <input type="text" name="calle" required />
-
-      <label>Número exterior:</label>
-      <input type="text" name="numExterior" required />
-
-      <label>Número interior:</label>
-      <input type="text" name="numInterior" />
-
-      <label>Código postal:</label>
-      <input type="text" name="cp" maxlength="5" inputmode="numeric" required />
-
-      <label>Colonia / Asentamiento:</label>
-      <input type="text" name="colonia" required />
-
-      <label>Municipio / Alcaldía:</label>
-      <input type="text" name="municipio" required />
-
-      <label>Estado:</label>
-      <input type="text" name="estado" required />
-
-      <label>País:</label>
-      <input type="text" name="pais" value="México" required />
-
-      <h3>Ocupación y giro</h3>
-
-      <label>Ocupación:</label>
-      <input type="text" name="ocupacion" required/>
-
-      <label>Giro:</label>
-      <input type="text" name="giro" required/>
-
-      <h3>Contacto y banco</h3>
-
-      <label>Correo electrónico:</label>
-      <input type="email" name="email" required/>
-
-      <label>Teléfono móvil:</label>
-      <input type="text" name="telefono" maxlength="10" inputmode="numeric" required />
-
-      <label>Banco:</label>
-      <input type="text" name="banco" required/>
-
-      <label>Cuenta:</label>
-      <input type="text" name="cuenta" inputmode="numeric" required/>
-
-      <label>Cuenta CLABE:</label>
-      <input type="text" name="clabe" maxlength="18" inputmode="numeric" required/>
-
-      <h3>Documentos (PDF)</h3>
-
-      <label>Identificación oficial (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Constancia de situación fiscal (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Comprobante de domicilio fiscal (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Carátula de estado de cuenta bancario (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Constancia de cumplimiento fiscal – SAT (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Constancia de cumplimiento – IMSS (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Constancia de cumplimiento – INFONAVIT (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>REPSE (opcional, PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" />
-
-      <label>Registro patronal (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" />
-
-      <label>Portafolio / experiencia previa (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" />
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">
-          Enviar solicitud
-        </button>
+          <div class="section-actions">
+            <button type="button" class="btn btn-primary btn-next-section" data-next="pf-domicilio">
+              Guardar y continuar
+            </button>
+          </div>
+        </div>
       </div>
+
+      <!-- Sección 2: Domicilio fiscal -->
+      <div class="form-section" data-section-id="pf-domicilio">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">2</span>
+            <h3>Domicilio fiscal</h3>
+          </div>
+        </div>
+        <div class="form-section-body">
+          <label>Calle:</label>
+          <input type="text" name="calle" required />
+
+          <label>Número exterior:</label>
+          <input type="text" name="numExterior" required />
+
+          <label>Número interior:</label>
+          <input type="text" name="numInterior" />
+
+          <label>Código postal:</label>
+          <input type="text" name="cp" maxlength="5" inputmode="numeric" required />
+
+          <label>Colonia / Asentamiento:</label>
+          <input type="text" name="colonia" required />
+
+          <label>Municipio / Alcaldía:</label>
+          <input type="text" name="municipio" required />
+
+          <label>Estado:</label>
+          <input type="text" name="estado" required />
+
+          <label>País:</label>
+          <input type="text" name="pais" value="México" required />
+
+          <div class="section-actions">
+            <button type="button" class="btn btn-primary btn-next-section" data-next="pf-contacto">
+              Guardar y continuar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 3: Ocupación / contacto / banco -->
+      <div class="form-section" data-section-id="pf-contacto">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">3</span>
+            <h3>Ocupación, contacto y banco</h3>
+          </div>
+        </div>
+        <div class="form-section-body">
+          <label>Ocupación:</label>
+          <input type="text" name="ocupacion" required/>
+
+          <label>Giro:</label>
+          <input type="text" name="giro" required/>
+
+          <label>Correo electrónico:</label>
+          <input type="email" name="email" required/>
+
+          <label>Teléfono móvil:</label>
+          <input type="text" name="telefono" maxlength="10" inputmode="numeric" required />
+
+          <label>Banco:</label>
+          <input type="text" name="banco" required/>
+
+          <label>Cuenta:</label>
+          <input type="text" name="cuenta" inputmode="numeric" required/>
+
+          <label>Cuenta CLABE:</label>
+          <input type="text" name="clabe" maxlength="18" inputmode="numeric" required/>
+
+          <div class="section-actions">
+            <button type="button" class="btn btn-primary btn-next-section" data-next="pf-documentos">
+              Guardar y continuar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 4: Documentos -->
+      <div class="form-section" data-section-id="pf-documentos">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">4</span>
+            <h3>Documentos (PDF)</h3>
+          </div>
+        </div>
+        <div class="form-section-body">
+          <label>Identificación oficial (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Constancia de situación fiscal (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Comprobante de domicilio fiscal (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Carátula de estado de cuenta bancario (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Constancia de cumplimiento fiscal – SAT (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Constancia de cumplimiento – IMSS (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Constancia de cumplimiento – INFONAVIT (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>REPSE (opcional, PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" />
+
+          <label>Registro patronal (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" />
+
+          <label>Portafolio / experiencia previa (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" />
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              Enviar solicitud
+            </button>
+          </div>
+        </div>
+      </div>
+
     </form>
   `;
 }

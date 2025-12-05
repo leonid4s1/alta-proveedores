@@ -381,3 +381,96 @@ tr:hover td {
   display: flex;
   justify-content: flex-end;
 }
+
+/* =========================
+   SECCIONES / STEPPER
+   ========================= */
+
+.form-section {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--odes-border);
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.form-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--odes-primary);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.form-section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--odes-primary);
+}
+
+/* Cuerpo de la sección (colapsable) */
+.form-section-body {
+  margin-top: 0.5rem;
+}
+
+.form-section.collapsed .form-section-body {
+  display: none;
+}
+
+/* Botones de sección */
+.section-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* =========================
+   ESTADOS DE INPUTS
+   ========================= */
+
+input,
+select,
+textarea {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* Pendiente (vacío obligatorio) -> amarillo / naranja suave */
+.input-pending {
+  border-color: var(--odes-accent);
+  box-shadow: 0 0 0 2px rgba(249, 178, 51, 0.25);
+  background-color: #fffaf0;
+}
+
+/* Correcto -> verde */
+.input-valid {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);
+  background-color: #ecfdf3;
+}
+
+/* Incorrecto -> rojo */
+.input-invalid {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25);
+  background-color: #fef2f2;
+}
