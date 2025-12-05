@@ -1,5 +1,3 @@
-const { app } = require("firebase-admin");
-
 const tipoSelect = document.getElementById("tipoProveedor");
 const container = document.getElementById("formContainer");
 
@@ -131,7 +129,7 @@ function validateProveedorForm(tipo, form) {
   }
 
   // Validatr archivos PDF
-  const files = form.querySelectorAll('input[type="file"][name = "documentos"]');
+  const files = form.querySelectorAll('input[type="file"][name="documentos"]');
   files.forEach((input) => {
     if (input.files.length > 0) {
       const file = input.files[0];
@@ -220,7 +218,7 @@ function applyInputState(input, state) {
 }
 
 // Valida un solo campo y devuelve "pending" | "valid" | "invalid" | "none"
-function validateField(input) {
+function validateField(tipo, input) {
   // no pintamos file inputs
   if (input.type === "file") return "none";
 
@@ -229,7 +227,7 @@ function validateField(input) {
   const value = rawValue.trim();
   let state = "none";
 
-  // Obligatorio vacio -> pendiente (amarillo)
+  // Obligatorio vacío -> pendiente (amarillo)
   if (input.required && !value) {
     state = "pending";
     applyInputState(input, state);
@@ -238,14 +236,14 @@ function validateField(input) {
 
   // Si no es obligatorio y está vacío -> sin estado
   if (!input.required && !value) {
-    applyInputState(input, "none");
+    applyInputState(input, "none"); // solo limpia clases
     return "none";
   }
 
-  // A partir de aqui hay contenido, validamos formato
+  // A partir de aquí hay contenido, validamos formato
   let ok = true;
 
-  // Reglas especificcas
+  // Reglas específicas
   if (name === "telefono") {
     ok = /^\d{10}$/.test(value);
   } else if (name === "cp" || name === "repCp") {
