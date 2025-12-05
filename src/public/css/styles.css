@@ -319,3 +319,65 @@ tr:hover td {
 .btn-pdf:hover {
   background: #2563eb;
 }
+
+/* =========================
+   FORMULARIO ALTA PROVEEDORES
+   ========================= */
+
+.form-page {
+  max-width: 1100px;
+}
+
+.form-header {
+  margin-bottom: 1.5rem;
+}
+
+.form-subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.form-top-row {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--odes-border);
+  padding-bottom: 0.75rem;
+}
+
+.form-top-field {
+  max-width: 320px;
+}
+
+/* Títulos dentro del formulario dinámico */
+.form-layout h2 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--odes-primary);
+  border-left: 4px solid var(--odes-accent);
+  padding-left: 0.5rem;
+}
+
+.form-layout h3 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-layout h4 {
+  margin-top: 1rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+/* Botón de envío centrado */
+.form-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}

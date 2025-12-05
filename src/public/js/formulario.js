@@ -200,6 +200,7 @@ function validatePersonaMoral(form, errors) {
     errors.push("El código postal del representante legal debe tener 5 dígitos numéricos.");
   }
 }
+
 // =============================
 // FORMULARIO PERSONA FÍSICA
 // =============================
@@ -309,8 +310,11 @@ function renderPersonaFisica() {
       <label>Portafolio / experiencia previa (PDF):</label>
       <input type="file" name="documentos" accept="application/pdf" />
 
-      <br><br>
-      <button type="submit">Enviar</button>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Enviar solicitud
+        </button>
+      </div>
     </form>
   `;
 }
@@ -533,8 +537,11 @@ function renderPersonaMoral() {
       <label>Portafolio de proyectos / experiencia (PDF):</label>
       <input type="file" name="documentos" accept="application/pdf" />
 
-      <br><br>
-      <button type="submit">Enviar</button>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Enviar solicitud
+        </button>
+      </div>
     </form>
   `;
 }

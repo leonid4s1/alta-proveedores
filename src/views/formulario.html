@@ -3,21 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <title>Alta de Proveedores</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/public/css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="/public/css/styles.css"/>
 </head>
 <body>
-  <h1>Alta de Proveedores</h1>
+  <div class="page-container form-page">
+    <header class="form-header">
+      <h1>Alta de Proveedores</h1>
+      <p class="form-subtitle">
+        Registrar a un nuevo prooveedor para Odes Construction.
+        Selecciona primero el tipo de proveedor y después llena los datos requeridos.
+      </p>
+    </header>
 
-  <label for="tipoProveedor">Selecciona el tipo de proveedor:</label>
-  <select id="tipoProveedor" name="tipoProveedor">
-    <option value="">-- Selecciona --</option>
-    <option value="fisica">Persona Física</option>
-    <option value="moral">Persona Moral</option>
-  </select>
-
-  <!-- Contenedor donde realmente va el formulario -->
-  <div id="formContainer"></div>
+    <section class="form-top-row">
+      <div class="form-top-field">
+        <label for="tipoProveedor">Tipo de proveedor</label>
+        <select id="tipoProveedor" name="tipoProveedor">
+          <option value="">-- Selecciona --</option>
+          <option value="fisica">Persona Física</option>
+          <option value="moral">Persona Moral</option>
+        </select>
+      </div>
+    </section>
+    
+    <!-- Aqui se inyecta el formulario dinamico (Persona fisica / Moral)-->
+    <section id="formContainer" class="form-layout">
+      <!-- Formulario dinamico  -->
+    </section>
+  </div>
 
   <script src="/public/js/formulario.js"></script>
 </body>
