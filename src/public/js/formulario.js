@@ -517,228 +517,305 @@ function renderPersonaFisica() {
 }
 
 // =============================
-// FORMULARIO PERSONA MORAL
+// FORMULARIO PERSONA MORAL (con secciones)
 // =============================
 function renderPersonaMoral() {
   return `
     <form id="formProveedor" enctype="multipart/form-data">
-      <h2>Datos de Persona Moral</h2>
-
-      <label>Razón social:</label>
-      <input type="text" name="razonSocial" required />
-
-      <label>RFC de la empresa (12 caracteres):</label>
-      <input type="text" name="rfc" maxlength="12" required />
-
-      <!-- DOMICILIO FISCAL EMPRESA -->
-      <h3>Domicilio fiscal de la empresa</h3>
-
-      <label>Calle:</label>
-      <input type="text" name="calle" required />
-
-      <label>Número exterior:</label>
-      <input type="text" name="numExterior" required />
-
-      <label>Número interior (opcional):</label>
-      <input type="text" name="numInterior" />
-
-      <label>Código postal:</label>
-      <input type="text" name="cp" maxlength="5" inputmode="numeric" required />
-
-      <label>Colonia / Asentamiento:</label>
-      <input type="text" name="colonia" required />
-
-      <label>Municipio / Alcaldía:</label>
-      <input type="text" name="municipio" required />
-
-      <label>Estado:</label>
-      <input type="text" name="estado" required />
-
-      <label>País:</label>
-      <input type="text" name="pais" value="México" required />
-
-      <!-- ACTA CONSTITUTIVA -->
-      <h3>Acta constitutiva</h3>
-
-      <label>Número de escritura o instrumento:</label>
-      <input type="text" name="actaNumEscritura" required/>
-
-      <label>Fecha de constitución:</label>
-      <input type="date" name="actaFechaConstitucion" required/>
-
-      <h4>Nombre del notario (acta)</h4>
-
-      <label>Apellido paterno:</label>
-      <input type="text" name="actaNotarioApellidoPaterno" required/>
-
-      <label>Apellido materno (opcional):</label>
-      <input type="text" name="actaNotarioApellidoMaterno" />
-
-      <label>Nombre:</label>
-      <input type="text" name="actaNotarioNombre" required/>
-
-      <label>Nombres (opcional):</label>
-      <input type="text" name="actaNotarioOtrosNombres" />
-
-      <label>Número de notaría:</label>
-      <input type="text" name="actaNumNotaria" inputmode="numeric" required/>
-
-      <label>Estado o entidad federativa (notaría):</label>
-      <input type="text" name="actaNotarioEstado" required/>
-
-      <!-- REPRESENTANTE LEGAL -->
-      <h3>Nombre del representante legal</h3>
-
-      <label>Apellido paterno:</label>
-      <input type="text" name="repApellidoPaterno" required />
-
-      <label>Apellido materno (opcional):</label>
-      <input type="text" name="repApellidoMaterno" />
-
-      <label>Nombre:</label>
-      <input type="text" name="repNombre" required />
-
-      <label>Nombres (opcional):</label>
-      <input type="text" name="repOtrosNombres" />
-
-      <!-- PODER DEL REPRESENTANTE -->
-      <h3>Poder del representante</h3>
-
-      <label>Número de escritura o instrumento:</label>
-      <input type="text" name="poderNumEscritura" required/>
-
-      <label>Fecha de constitución (poder):</label>
-      <input type="date" name="poderFechaConstitucion" required/>
-
-      <h4>Nombre del notario (poder)</h4>
-
-      <label>Apellido paterno:</label>
-      <input type="text" name="poderNotarioApellidoPaterno" required/>
-
-      <label>Apellido materno (opcional):</label>
-      <input type="text" name="poderNotarioApellidoMaterno" />
-
-      <label>Nombre:</label>
-      <input type="text" name="poderNotarioNombre" required/>
-
-      <label>Nombres (opcional):</label>
-      <input type="text" name="poderNotarioOtrosNombres" />
-
-      <label>Número de notaría:</label>
-      <input type="text" name="poderNumNotaria" inputmode="numeric" required/>
-
-      <label>Estado o entidad federativa (notaría):</label>
-      <input type="text" name="poderNotarioEstado" required/>
-
-      <!-- RFC Y DOMICILIO DEL REPRESENTANTE -->
-      <h3>Datos fiscales del representante legal</h3>
-
-      <label>RFC del representante legal (13 caracteres):</label>
-      <input type="text" name="repRfc" maxlength="13" required />
-
-      <h4>Domicilio fiscal del representante</h4>
-
-      <label>Calle:</label>
-      <input type="text" name="repCalle" required/>
-
-      <label>Número exterior:</label>
-      <input type="text" name="repNumExterior" required/>
-
-      <label>Número interior (opcional):</label>
-      <input type="text" name="repNumInterior" />
-
-      <label>Código postal:</label>
-      <input type="text" name="repCp" maxlength="5" inputmode="numeric" required/>
-
-      <label>Colonia / Asentamiento:</label>
-      <input type="text" name="repColonia" required/>
-
-      <label>Municipio / Alcaldía:</label>
-      <input type="text" name="repMunicipio" required/>
-
-      <label>Estado:</label>
-      <input type="text" name="repEstado" required/>
-
-      <label>País:</label>
-      <input type="text" name="repPais" value="México" required/>
-
-      <!-- OCUPACIÓN, GIRO, CURP, CONTACTO Y BANCO -->
-      <h3>Datos adicionales</h3>
-
-      <label>Ocupación:</label>
-      <input type="text" name="ocupacion" required/>
-
-      <label>Giro:</label>
-      <input type="text" name="giro" required/>
-
-      <label>CURP del representante (18 caracteres):</label>
-      <input type="text" name="repCurp" maxlength="18" required/>
-
-      <label>Correo electrónico:</label>
-      <input type="email" name="email" required/>
-
-      <label>Teléfono móvil:</label>
-      <input type="text" name="telefono" maxlength="10" inputmode="numeric" required/>
-
-      <label>Banco:</label>
-      <input type="text" name="banco" required/>
-
-      <label>Cuenta:</label>
-      <input type="text" name="cuenta" inputmode="numeric" required/>
-
-      <label>Cuenta CLABE:</label>
-      <input type="text" name="clabe" maxlength="18" inputmode="numeric" required/>
-
-      <!-- DOCUMENTOS (PDF) -->
-      <h3>Documentos (PDF)</h3>
-
-      <label>Identificación representante legal (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Constancia de situación fiscal empresa (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Constancia de situación fiscal representante (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Comprobante de domicilio fiscal empresa (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Acta constitutiva (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Poder del representante (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" />
-
-      <label>Carátula de estado de cuenta bancario (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Constancia de cumplimiento fiscal – SAT (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Constancia de cumplimiento – IMSS (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Constancia de cumplimiento – INFONAVIT (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required />
-
-      <label>Registro REPSE (opcional, PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" />
-
-      <label>Registro patronal (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required/>
-
-      <label>Estados financieros (último ejercicio) (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" required/>
-
-      <label>Portafolio de proyectos / experiencia (PDF):</label>
-      <input type="file" name="documentos" accept="application/pdf" />
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">
-          Enviar solicitud
-        </button>
+      
+      <!-- Sección 1: Datos de Persona Moral -->
+      <div class="form-section" data-section-id="pm-datos">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">1</span>
+            <h3>Datos de Persona Moral</h3>
+          </div>
+        </div>
+        <div class="form-section-body">
+          <label>Razón social:</label>
+          <input type="text" name="razonSocial" required />
+
+          <label>RFC de la empresa (12 caracteres):</label>
+          <input type="text" name="rfc" maxlength="12" required />
+
+          <div class="section-actions">
+            <button type="button" class="btn btn-primary btn-next-section" data-next="pm-domicilio">
+              Guardar y continuar
+            </button>
+          </div>
+        </div>
       </div>
+
+      <!-- Sección 2: Domicilio fiscal de la empresa -->
+      <div class="form-section" data-section-id="pm-domicilio">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">2</span>
+            <h3>Domicilio fiscal de la empresa</h3>
+          </div>
+        </div>
+        <div class="form-section-body">
+          <label>Calle:</label>
+          <input type="text" name="calle" required />
+
+          <label>Número exterior:</label>
+          <input type="text" name="numExterior" required />
+
+          <label>Número interior (opcional):</label>
+          <input type="text" name="numInterior" />
+
+          <label>Código postal:</label>
+          <input type="text" name="cp" maxlength="5" inputmode="numeric" required />
+
+          <label>Colonia / Asentamiento:</label>
+          <input type="text" name="colonia" required />
+
+          <label>Municipio / Alcaldía:</label>
+          <input type="text" name="municipio" required />
+
+          <label>Estado:</label>
+          <input type="text" name="estado" required />
+
+          <label>País:</label>
+          <input type="text" name="pais" value="México" required />
+
+          <div class="section-actions">
+            <button type="button" class="btn btn-primary btn-next-section" data-next="pm-acta">
+              Guardar y continuar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 3: Acta constitutiva -->
+      <div class="form-section" data-section-id="pm-acta">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">3</span>
+            <h3>Acta constitutiva</h3>
+          </div>
+        </div>
+        <div class="form-section-body">
+          <label>Número de escritura o instrumento:</label>
+          <input type="text" name="actaNumEscritura" required/>
+
+          <label>Fecha de constitución:</label>
+          <input type="date" name="actaFechaConstitucion" required/>
+
+          <h4>Nombre del notario (acta)</h4>
+
+          <label>Apellido paterno:</label>
+          <input type="text" name="actaNotarioApellidoPaterno" required/>
+
+          <label>Apellido materno (opcional):</label>
+          <input type="text" name="actaNotarioApellidoMaterno" />
+
+          <label>Nombre:</label>
+          <input type="text" name="actaNotarioNombre" required/>
+
+          <label>Nombres (opcional):</label>
+          <input type="text" name="actaNotarioOtrosNombres" />
+
+          <label>Número de notaría:</label>
+          <input type="text" name="actaNumNotaria" inputmode="numeric" required/>
+
+          <label>Estado o entidad federativa (notaría):</label>
+          <input type="text" name="actaNotarioEstado" required/>
+
+          <div class="section-actions">
+            <button type="button" class="btn btn-primary btn-next-section" data-next="pm-rep">
+              Guardar y continuar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 4: Datos fiscales del representante legal -->
+      <div class="form-section" data-section-id="pm-rep">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">4</span>
+            <h3>Datos fiscales del representante legal</h3>
+          </div>
+        </div>
+        <div class="form-section-body">
+          <h4>Nombre del representante legal</h4>
+
+          <label>Apellido paterno:</label>
+          <input type="text" name="repApellidoPaterno" required />
+
+          <label>Apellido materno (opcional):</label>
+          <input type="text" name="repApellidoMaterno" />
+
+          <label>Nombre:</label>
+          <input type="text" name="repNombre" required />
+
+          <label>Nombres (opcional):</label>
+          <input type="text" name="repOtrosNombres" />
+
+          <h4>Poder del representante</h4>
+
+          <label>Número de escritura o instrumento:</label>
+          <input type="text" name="poderNumEscritura" required/>
+
+          <label>Fecha de constitución (poder):</label>
+          <input type="date" name="poderFechaConstitucion" required/>
+
+          <label>Apellido paterno del notario:</label>
+          <input type="text" name="poderNotarioApellidoPaterno" required/>
+
+          <label>Apellido materno del notario (opcional):</label>
+          <input type="text" name="poderNotarioApellidoMaterno" />
+
+          <label>Nombre del notario:</label>
+          <input type="text" name="poderNotarioNombre" required/>
+
+          <label>Nombres del notario (opcional):</label>
+          <input type="text" name="poderNotarioOtrosNombres" />
+
+          <label>Número de notaría:</label>
+          <input type="text" name="poderNumNotaria" inputmode="numeric" required/>
+
+          <label>Estado o entidad federativa (notaría):</label>
+          <input type="text" name="poderNotarioEstado" required/>
+
+          <h4>RFC y domicilio fiscal del representante</h4>
+
+          <label>RFC del representante legal (13 caracteres):</label>
+          <input type="text" name="repRfc" maxlength="13" required />
+
+          <label>Calle:</label>
+          <input type="text" name="repCalle" required/>
+
+          <label>Número exterior:</label>
+          <input type="text" name="repNumExterior" required/>
+
+          <label>Número interior (opcional):</label>
+          <input type="text" name="repNumInterior" />
+
+          <label>Código postal:</label>
+          <input type="text" name="repCp" maxlength="5" inputmode="numeric" required/>
+
+          <label>Colonia / Asentamiento:</label>
+          <input type="text" name="repColonia" required/>
+
+          <label>Municipio / Alcaldía:</label>
+          <input type="text" name="repMunicipio" required/>
+
+          <label>Estado:</label>
+          <input type="text" name="repEstado" required/>
+
+          <label>País:</label>
+          <input type="text" name="repPais" value="México" required/>
+
+          <label>CURP del representante (18 caracteres):</label>
+          <input type="text" name="repCurp" maxlength="18" required/>
+
+          <div class="section-actions">
+            <button type="button" class="btn btn-primary btn-next-section" data-next="pm-extra">
+              Guardar y continuar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 5: Datos adicionales -->
+      <div class="form-section" data-section-id="pm-extra">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">5</span>
+            <h3>Datos adicionales</h3>
+          </div>
+        </div>
+        <div class="form-section-body">
+          <label>Ocupación:</label>
+          <input type="text" name="ocupacion" required/>
+
+          <label>Giro:</label>
+          <input type="text" name="giro" required/>
+
+          <label>Correo electrónico:</label>
+          <input type="email" name="email" required/>
+
+          <label>Teléfono móvil:</label>
+          <input type="text" name="telefono" maxlength="10" inputmode="numeric" required/>
+
+          <label>Banco:</label>
+          <input type="text" name="banco" required/>
+
+          <label>Cuenta:</label>
+          <input type="text" name="cuenta" inputmode="numeric" required/>
+
+          <label>Cuenta CLABE:</label>
+          <input type="text" name="clabe" maxlength="18" inputmode="numeric" required/>
+
+          <div class="section-actions">
+            <button type="button" class="btn btn-primary btn-next-section" data-next="pm-documentos">
+              Guardar y continuar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 6: Documentos (PDF) -->
+      <div class="form-section" data-section-id="pm-documentos">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">6</span>
+            <h3>Documentos (PDF)</h3>
+          </div>
+        </div>
+        <div class="form-section-body">
+          <label>Identificación representante legal (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Constancia de situación fiscal empresa (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Constancia de situación fiscal representante (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Comprobante de domicilio fiscal empresa (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Acta constitutiva (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Poder del representante (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" />
+
+          <label>Carátula de estado de cuenta bancario (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Constancia de cumplimiento fiscal – SAT (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Constancia de cumplimiento – IMSS (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Constancia de cumplimiento – INFONAVIT (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required />
+
+          <label>Registro REPSE (opcional, PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" />
+
+          <label>Registro patronal (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required/>
+
+          <label>Estados financieros (último ejercicio) (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" required/>
+
+          <label>Portafolio de proyectos / experiencia (PDF):</label>
+          <input type="file" name="documentos" accept="application/pdf" />
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              Enviar solicitud
+            </button>
+          </div>
+        </div>
+      </div>
+
     </form>
   `;
 }
