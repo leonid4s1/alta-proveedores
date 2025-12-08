@@ -129,7 +129,7 @@ function validateProveedorForm(tipo, form) {
   }
 
   // Validatr archivos PDF
-  const files = form.querySelectorAll('input[type="file"][name="documentos"]');
+  const files = form.querySelectorAll('input[type="file"]');
   files.forEach((input) => {
     if (input.files.length > 0) {
       const file = input.files[0];
@@ -475,34 +475,34 @@ function renderPersonaFisica() {
         </div>
         <div class="form-section-body">
           <label>Identificación oficial (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docIdentificacionOficial" accept="application/pdf" required />
 
           <label>Constancia de situación fiscal (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docConstanciaFiscal" accept="application/pdf" required />
 
           <label>Comprobante de domicilio fiscal (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docComprobanteDomicilio" accept="application/pdf" required />
 
           <label>Carátula de estado de cuenta bancario (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docEstadoCuenta" accept="application/pdf" required />
 
           <label>Constancia de cumplimiento fiscal – SAT (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docCumplimientoSAT" accept="application/pdf" required />
 
           <label>Constancia de cumplimiento – IMSS (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docCumplimientoIMSS" accept="application/pdf" required />
 
           <label>Constancia de cumplimiento – INFONAVIT (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docCumplimientoINFONAVIT" accept="application/pdf" required />
 
           <label>REPSE (opcional, PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" />
+          <input type="file" name="docREPSE" accept="application/pdf" />
 
           <label>Registro patronal (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" />
+          <input type="file" name="docRegistroPatronal" accept="application/pdf" />
 
           <label>Portafolio / experiencia previa (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" />
+          <input type="file" name="docPortafolio" accept="application/pdf" />
 
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">
@@ -511,7 +511,6 @@ function renderPersonaFisica() {
           </div>
         </div>
       </div>
-
     </form>
   `;
 }
@@ -767,46 +766,46 @@ function renderPersonaMoral() {
         </div>
         <div class="form-section-body">
           <label>Identificación representante legal (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docPmIdentificacionRep" accept="application/pdf" required />
 
           <label>Constancia de situación fiscal empresa (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docPmConstanciaFiscalEmpresa" accept="application/pdf" required />
 
           <label>Constancia de situación fiscal representante (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docPmConstanciaFiscalRep" accept="application/pdf" required />
 
           <label>Comprobante de domicilio fiscal empresa (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docPmComprobanteDomicilioEmpresa" accept="application/pdf" required />
 
           <label>Acta constitutiva (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docPmActaConstitutiva" accept="application/pdf" required />
 
           <label>Poder del representante (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" />
+          <input type="file" name="docPmPoderRep" accept="application/pdf" />
 
           <label>Carátula de estado de cuenta bancario (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docPmEstadoCuenta" accept="application/pdf" required />
 
           <label>Constancia de cumplimiento fiscal – SAT (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docPmCumplimientoSAT" accept="application/pdf" required />
 
           <label>Constancia de cumplimiento – IMSS (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docPmCumplimientoIMSS" accept="application/pdf" required />
 
           <label>Constancia de cumplimiento – INFONAVIT (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required />
+          <input type="file" name="docPmCumplimientoINFONAVIT" accept="application/pdf" required />
 
           <label>Registro REPSE (opcional, PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" />
+          <input type="file" name="docPmREPSE" accept="application/pdf" />
 
           <label>Registro patronal (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required/>
+          <input type="file" name="docPmRegistroPatronal" accept="application/pdf" required />
 
           <label>Estados financieros (último ejercicio) (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" required/>
+          <input type="file" name="docPmEstadosFinancieros" accept="application/pdf" required />
 
           <label>Portafolio de proyectos / experiencia (PDF):</label>
-          <input type="file" name="documentos" accept="application/pdf" />
+          <input type="file" name="docPmPortafolio" accept="application/pdf" />
 
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">
@@ -815,7 +814,6 @@ function renderPersonaMoral() {
           </div>
         </div>
       </div>
-
     </form>
   `;
 }

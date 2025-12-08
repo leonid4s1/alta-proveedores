@@ -24,15 +24,17 @@ async function crearCarpetaProveedor(nombreCarpeta) {
   return res.data; // { id, name }
 }
 
-async function subirPdfACarpeta(file, folderId) {
+async function subirPdfACarpeta(file, folderId, nombreEnDrive) {
   const drive = await getDriveClient();
 
   // Se convierte el buffer de multer en un stream legible
   const fileStream = Readable.from(file.buffer);
 
+  const name = nombreEnDrive || file.originalname;
+
   const res = await drive.files.create({
     requestBody: {
-      name: file.originalname,
+      name,
       parents: [folderId],
       mimeType: 'application/pdf'
     },

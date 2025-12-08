@@ -1,5 +1,4 @@
 // src/services/proveedores.service.js
-const { query } = require('express');
 const db = require('../config/firestore');
 const { buildProveedor } = require('../models/proveedor.model');
 const { crearCarpetaProveedor,
@@ -40,12 +39,61 @@ async function crearProveedor(data, archivos = []) {
   const carpeta = await crearCarpetaProveedor(nombreCarpeta);
   proveedor.driveFolderId = carpeta.id;
 
+  // ==========================
+  // Mapeo de nombres de PDF
+  // ==========================
+  let etiquetasDocs = [];
+
+  if (tipo === 'fisica') {
+    etiquetasDocs = [
+      'IDENTIFICACION_OFICIAL',
+      'CONSTANCIA_SITUACION_FISCAL',
+      'COMPROBANTE_DOMICILIO_FISCAL',
+      'CARATULA_ESTADO_CUENTA',
+      'CONSTANCIA_CUMPLIMIENTO_SAT',
+      'CONSTANCIA_CUMPLIMIENTO_IMSS',
+      'CONSTANCIA_CUMPLIMIENTO_INFONAVIT',
+      'REPSE',
+      'REGISTRO_PATRONAL',
+      'PORTAFOLIO_EXPERIENCIA'
+    ];
+  } else if (tipo === 'moral') {
+    etiquetasDocs = [
+      'IDENTIFICACION_REPRESENTANTE',
+      'CONSTANCIA_SITUACION_FISCAL_EMPRESA',
+      'CONSTANCIA_SITUACION_FISCAL_REPRESENTANTE',
+      'COMPROBANTE_DOMICILIO_FISCAL_EMPRESA',
+      'ACTA_CONSTITUTIVA',
+      'PODER_REPRESENTANTE',
+      'CARATULA_ESTADO_CUENTA',
+      'CONSTANCIA_CUMPLIMIENTO_SAT',
+      'CONSTANCIA_CUMPLIMIENTO_IMSS',
+      'CONSTANCIA_CUMPLIMIENTO_INFONAVIT',
+      'REGISTRO_REPSE',
+      'REGISTRO_PATRONAL',
+      'ESTADOS_FINANCIEROS',
+      'PORTAFOLIO_PROYECTOS'
+    ];
+  }
+
   // 2) Subir cada PDF a esa carpeta
   const docs = [];
-  for (const file of archivos) {
-    const fileRes = await subirPdfACarpeta(file, carpeta.id);
+
+  for (let i = 0; i < archivos.length; i++) {
+    const file = archivos[i];
+
+    // Etiqueta segun el orden del input en el formulario
+    const etiqueta = etiquetasDocs[i] || `DOCUMENTO_${i + 1}`;
+
+    // Nombre final en Drive: RFC_ETIQUETA.pdf
+    const nombreEnDriveBase = rfc || 'SIN_RFC';
+    const nombreEnDrive = `${nombreEnDriveBase}_${etiqueta}.pdf`;
+
+    const fileRes = await subirPdfACarpeta(file, carpeta.id, nombreEnDrive);
+
     docs.push({
       campo: file.fieldname,
+      tipoDocumento: etiqueta,
       nombreOriginal: file.originalname,
       mimeType: file.mimetype,
       size: file.size,

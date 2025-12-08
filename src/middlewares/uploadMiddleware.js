@@ -24,7 +24,7 @@ const upload = multer({
   }
 });
 
-// Aceptar varios PDFs bajo el mismo campo "documentos"
-const uploadDocsMiddleware = upload.array('documentos', 20);
+// Acepta TODOS los archivos (cualquier name) y después en backend usamos file.fieldname
+const uploadDocsMiddleware = upload.any();
 
 module.exports = { uploadDocsMiddleware };
