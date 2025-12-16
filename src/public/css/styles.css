@@ -474,3 +474,22 @@ textarea {
   box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25);
   background-color: #fef2f2;
 }
+
+/* =========================
+   AYUDAS / LEYENDAS Y DIVISORES (FORMULARIO)
+   ========================= */
+
+.field-hint {
+  display: block;
+  margin-top: 0.15rem;
+  margin-bottom: 0.55rem;
+  font-size: 0.78rem;
+  color: #6b7280;
+  line-height: 1.2;
+}
+
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--odes-border);
+  margin: 1rem 0;
+}

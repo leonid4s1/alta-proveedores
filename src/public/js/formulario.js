@@ -91,7 +91,7 @@ function validateProveedorForm(tipo, form) {
     validatePersonaMoral(form, errors);
   }
 
-  // Validatr archivos PDF
+  // Validar archivos PDF
   const fileInputs = form.querySelectorAll('input[type="file"]');
   fileInputs.forEach((input) => {
     const f = input.files && input.files[0];
@@ -267,7 +267,14 @@ function validateField(tipo, input) {
 
   // Validaciones específicas
   if (name === "rfc") {
-    state = tipo === "moral" ? (value.length === 12 ? "valid" : "invalid") : (value.length === 13 ? "valid" : "invalid");
+    state =
+      tipo === "moral"
+        ? value.length === 12
+          ? "valid"
+          : "invalid"
+        : value.length === 13
+        ? "valid"
+        : "invalid";
   } else if (name === "curp") {
     state = value.length === 18 ? "valid" : "invalid";
   } else if (name === "repRfc") {
@@ -600,6 +607,51 @@ function renderPersonaMoral() {
             <button type="button" class="btn btn-secondary btn-prev-section" data-prev="pm-contacto">
               Atrás
             </button>
+            <button type="button" class="btn btn-primary btn-next-section" data-next="pm-acta">
+              Guardar y continuar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 5: Acta constitutiva -->
+      <div class="form-section" data-section-id="pm-acta">
+        <div class="form-section-header">
+          <div class="form-section-title">
+            <span class="step-badge">5</span>
+            <h3>Acta constitutiva</h3>
+          </div>
+        </div>
+
+        <div class="form-section-body">
+          <label>Número de escritura o instrumento:</label>
+          <input type="text" name="actaNumEscritura" required />
+
+          <label>Fecha de constitución (acta):</label>
+          <input type="date" name="actaFechaConstitucion" required />
+
+          <label>Apellido paterno del notario:</label>
+          <input type="text" name="actaNotarioApellidoPaterno" required />
+
+          <label>Apellido materno del notario (opcional):</label>
+          <input type="text" name="actaNotarioApellidoMaterno" />
+
+          <label>Nombre del notario:</label>
+          <input type="text" name="actaNotarioNombre" required />
+
+          <label>Nombres del notario (opcional):</label>
+          <input type="text" name="actaNotarioOtrosNombres" />
+
+          <label>Número de notaría:</label>
+          <input type="text" name="actaNumNotaria" required />
+
+          <label>Estado o entidad federativa (notaría):</label>
+          <input type="text" name="actaNotarioEstado" required />
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary btn-prev-section" data-prev="pm-bancario">
+              Atrás
+            </button>
             <button type="button" class="btn btn-primary btn-next-section" data-next="pm-representante">
               Guardar y continuar
             </button>
@@ -607,11 +659,11 @@ function renderPersonaMoral() {
         </div>
       </div>
 
-      <!-- Sección 5: Datos del Representante Legal -->
+      <!-- Sección 6: Datos del Representante Legal -->
       <div class="form-section" data-section-id="pm-representante">
         <div class="form-section-header">
           <div class="form-section-title">
-            <span class="step-badge">5</span>
+            <span class="step-badge">6</span>
             <h3>Datos fiscales del representante legal</h3>
           </div>
         </div>
@@ -661,7 +713,7 @@ function renderPersonaMoral() {
           <input type="text" name="repPais" value="México" required />
 
           <div class="form-actions">
-            <button type="button" class="btn btn-secondary btn-prev-section" data-prev="pm-bancario">
+            <button type="button" class="btn btn-secondary btn-prev-section" data-prev="pm-acta">
               Atrás
             </button>
             <button type="button" class="btn btn-primary btn-next-section" data-next="pm-documentos">
@@ -671,15 +723,16 @@ function renderPersonaMoral() {
         </div>
       </div>
 
-      <!-- Sección 6: Documentos (PDF) -->
+      <!-- Sección 7: Documentos (PDF) -->
       <div class="form-section" data-section-id="pm-documentos">
         <div class="form-section-header">
           <div class="form-section-title">
-            <span class="step-badge">6</span>
+            <span class="step-badge">7</span>
             <h3>Documentos (PDF)</h3>
           </div>
         </div>
         <div class="form-section-body">
+
           <h4>Segmento 1: Documentos fiscales básicos (obligatorios)</h4>
 
           <label>Identificación oficial del representante legal (INE / Pasaporte) (PDF):</label>
