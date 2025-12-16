@@ -23,63 +23,98 @@ tipoSelect.addEventListener("change", () => {
   attachStepper(tipo);
 });
 
+// ✅ Flag global (ponlo arriba del archivo, junto a currentForm)
+let isSubmitting = false;
+
 // =============================
 // SUBMIT FORMULARIO
 // =============================
 function attachSubmitListener() {
   if (!currentForm) return;
 
-  currentForm.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
+  // ✅ OJO: quitamos { once: true }
+  currentForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-      const tipo = tipoSelect.value;
+    // ✅ Evitar doble envío
+    if (isSubmitting) return;
+    isSubmitting = true;
 
-      // Validación rápida
-      const errors = validateProveedorForm(tipo, currentForm);
-      if (errors.length) {
-        markRequiredFields(tipo);
-        alert(errors.join("\n"));
+    const tipo = tipoSelect.value;
+
+    // ✅ Feedback visual + bloquear botón
+    const submitBtn = currentForm.querySelector('button[type="submit"]');
+    const prevText = submitBtn ? submitBtn.textContent : "";
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Enviando...";
+    }
+
+    // Validación rápida
+    const errors = validateProveedorForm(tipo, currentForm);
+    if (errors.length) {
+      markRequiredFields(tipo);
+      alert(errors.join("\n"));
+
+      // 🔁 Rehabilitar
+      isSubmitting = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = prevText;
+      }
+      return;
+    }
+
+    const formData = new FormData(currentForm);
+    formData.append("tipo", tipo);
+
+    try {
+      const resp = await fetch("/api/proveedores", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        console.error(data);
+        alert(data.message || "Ocurrió un error al guardar el proveedor.");
+
+        // 🔁 Rehabilitar
+        isSubmitting = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = prevText;
+        }
         return;
       }
 
-      const formData = new FormData(currentForm);
-      formData.append("tipo", tipo);
+      // ✅ ÉXITO: mensaje + limpieza + redirección
+      alert(
+        "Solicitud enviada correctamente. Te regresaremos al inicio de Alta de Proveedores."
+      );
+      console.log("Respuesta backend:", data);
 
-      try {
-        const resp = await fetch("/api/proveedores", {
-          method: "POST",
-          body: formData,
-        });
+      // limpiar el formulario y select
+      if (currentForm) currentForm.reset();
+      tipoSelect.value = "";
+      container.innerHTML = "";
+      currentForm = null;
 
-        const data = await resp.json();
+      // ✅ redirigir al inicio
+      window.location.assign("/formulario");
+    } catch (error) {
+      console.error(error);
+      alert("Error de red al mandar el formulario.");
 
-        if (!resp.ok) {
-          console.error(data);
-          alert(data.message || "Ocurrió un error al guardar el proveedor.");
-          return;
-        }
-
-        // ✅ ÉXITO: mensaje + limpieza + redirección
-        alert("Solicitud enviada correctamente. Te regresaremos al inicio de Alta de Proveedores.");
-        console.log("Respuesta backend:", data);
-
-        // limpiar el formulario y select
-        if (currentForm) currentForm.reset();
-        tipoSelect.value = "";
-        container.innerHTML = "";
-        currentForm = null;
-
-        // ✅ redirigir al inicio
-        window.location.href = "/formulario";
-      } catch (error) {
-        console.error(error);
-        alert("Error de red al mandar el formulario.");
+      // 🔁 Rehabilitar
+      isSubmitting = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = prevText;
       }
-    },
-    { once : true }
-  ); // para evitar múltiples listeners si cambian el tipo
+    }
+  });
 }
 
 // =============================
