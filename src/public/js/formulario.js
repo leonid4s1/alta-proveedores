@@ -19,6 +19,7 @@ tipoSelect.addEventListener("change", () => {
 
   attachSubmitListener();
   attachUppercaseListeners();
+  attachLiveValidation(tipo); // ✅ aquí
   attachStepper(tipo);
 });
 
@@ -38,6 +39,7 @@ function attachSubmitListener() {
       // Validación rápida
       const errors = validateProveedorForm(tipo, currentForm);
       if (errors.length) {
+        markRequiredFields(tipo);
         alert(errors.join("\n"));
         return;
       }
@@ -59,20 +61,24 @@ function attachSubmitListener() {
           return;
         }
 
-        alert("Proveedor creado correctamente.");
+        // ✅ ÉXITO: mensaje + limpieza + redirección
+        alert("Solicitud enviada correctamente. Te regresaremos al inicio de Alta de Proveedores.");
         console.log("Respuesta backend:", data);
 
         // limpiar el formulario y select
-        currentForm.reset();
+        if (currentForm) currentForm.reset();
         tipoSelect.value = "";
         container.innerHTML = "";
         currentForm = null;
+
+        // ✅ redirigir al inicio
+        window.location.href = "/formulario";
       } catch (error) {
         console.error(error);
         alert("Error de red al mandar el formulario.");
       }
     },
-    { once: true }
+    { once : true }
   ); // para evitar múltiples listeners si cambian el tipo
 }
 
@@ -111,20 +117,59 @@ function validateProveedorForm(tipo, form) {
 function validateCamposComunes(form, errors) {
   // contacto
   const email = form.querySelector('input[name="email"]')?.value.trim();
-  const telefono = form.querySelector('input[name="telefono"]')?.value.trim();
+  const telefonoRaw = form.querySelector('input[name="telefono"]')?.value.trim();
 
   if (!email) errors.push("Email es requerido.");
-  if (!telefono) errors.push("Teléfono es requerido.");
+  else if (!isEmailValid(email)) errors.push("Email no tiene un formato válido.");
+
+  if (!telefonoRaw) errors.push("Teléfono es requerido.");
+  else {
+    const telefono = telefonoRaw.replace(/\s+/g, "");
+    if (!isOnlyDigits(telefono)) errors.push("Teléfono solo debe contener números.");
+    else if (telefono.length < 10 || telefono.length > 15)
+      errors.push("Teléfono debe tener entre 10 y 15 dígitos.");
+  }
 
   // bancario
   const banco = form.querySelector('input[name="banco"]')?.value.trim();
-  const cuenta = form.querySelector('input[name="cuenta"]')?.value.trim();
-  const clabe = form.querySelector('input[name="clabe"]')?.value.trim();
+  const cuentaRaw = form.querySelector('input[name="cuenta"]')?.value.trim();
+  const clabeRaw = form.querySelector('input[name="clabe"]')?.value.trim();
 
   if (!banco) errors.push("Banco es requerido.");
-  if (!cuenta) errors.push("Cuenta es requerida.");
-  if (!clabe || clabe.length !== 18)
-    errors.push("CLABE es requerida (18 dígitos).");
+
+  if (!cuentaRaw) errors.push("Cuenta es requerida.");
+  else {
+    const cuenta = cuentaRaw.replace(/\s+/g, "");
+    if (!isOnlyDigits(cuenta)) errors.push("Cuenta solo debe contener números.");
+    else if (cuenta.length < 6) errors.push("Cuenta debe tener al menos 6 dígitos.");
+  }
+
+  if (!clabeRaw) errors.push("CLABE es requerida (18 dígitos).");
+  else {
+    const clabe = clabeRaw.replace(/\s+/g, "");
+    if (!isOnlyDigits(clabe)) errors.push("CLABE solo debe contener números.");
+    else if (clabe.length !== 18) errors.push("CLABE debe tener 18 dígitos.");
+  }
+
+  // CP empresa (5 dígitos)
+  const cpRaw = form.querySelector('input[name="cp"]')?.value.trim();
+  if (!cpRaw) errors.push("Código postal es requerido.");
+  else {
+    const cp = cpRaw.replace(/\s+/g, "");
+    if (!isOnlyDigits(cp)) errors.push("Código postal solo debe contener números.");
+    else if (cp.length !== 5) errors.push("Código postal debe tener 5 dígitos.");
+  }
+
+  // CP representante (solo aplica si es persona moral y existe el input)
+  const repCpRaw = form.querySelector('input[name="repCp"]')?.value.trim();
+  if (form.querySelector('input[name="repCp"]')) {
+    if (!repCpRaw) errors.push("Código postal del representante legal es requerido.");
+    else {
+      const repCp = repCpRaw.replace(/\s+/g, "");
+      if (!isOnlyDigits(repCp)) errors.push("CP del representante solo debe contener números.");
+      else if (repCp.length !== 5) errors.push("CP del representante debe tener 5 dígitos.");
+    }
+  }
 }
 
 function validatePersonaFisica(form, errors) {
@@ -178,6 +223,32 @@ function attachUppercaseListeners() {
     input.addEventListener("input", () => {
       input.value = (input.value || "").toUpperCase();
     });
+  });
+}
+
+// =============================
+// LIVE VALIDATION (rojo/verde en vivo)
+// =============================
+function attachLiveValidation(tipo) {
+  if (!currentForm) return;
+
+  const inputs = currentForm.querySelectorAll("input, select, textarea");
+
+  inputs.forEach((input) => {
+    // no pintamos file inputs
+    if (input.type === "file") return;
+
+    const handler = () => {
+      const state = validateField(tipo, input);
+      paintFieldState(input, state);
+    };
+
+    // input: texto mientras escribe
+    input.addEventListener("input", handler);
+    // change: selects, date, etc.
+    input.addEventListener("change", handler);
+    // blur: cuando sale del campo
+    input.addEventListener("blur", handler);
   });
 }
 
@@ -249,6 +320,15 @@ function markRequiredFields(tipo) {
   });
 }
 
+function isEmailValid(email) {
+  // simple y suficiente para UI (sin ser excesivamente estricto)
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isOnlyDigits(str) {
+  return /^\d+$/.test(str);
+}
+
 // Valida un solo campo y devuelve "pending" | "valid" | "invalid" | "none"
 function validateField(tipo, input) {
   // no pintamos file inputs
@@ -257,42 +337,83 @@ function validateField(tipo, input) {
   const name = input.name;
   const rawValue = input.value || "";
   const value = rawValue.trim();
-  let state = "none";
 
-  // Obligatorio vacío -> pending
-  if (input.required && !value) return "pending";
+  // Obligatorio vacío -> INVALID (rojo)
+  if (input.required && !value) return "invalid";
 
-  // si no es required y está vacío, no validar
+  // si no es required y está vacío, no validar (opcionales)
   if (!input.required && !value) return "none";
 
+  // =============================
   // Validaciones específicas
+  // =============================
+
+  // RFC
   if (name === "rfc") {
-    state =
-      tipo === "moral"
-        ? value.length === 12
-          ? "valid"
-          : "invalid"
-        : value.length === 13
+    return tipo === "moral"
+      ? value.length === 12
         ? "valid"
-        : "invalid";
-  } else if (name === "curp") {
-    state = value.length === 18 ? "valid" : "invalid";
-  } else if (name === "repRfc") {
-    state = value.length === 13 ? "valid" : "invalid";
-  } else if (name === "repCurp") {
-    state = value.length === 18 ? "valid" : "invalid";
-  } else {
-    // genérico: si required y tiene valor -> valid
-    state = input.required ? "valid" : "none";
+        : "invalid"
+      : value.length === 13
+      ? "valid"
+      : "invalid";
   }
 
-  return state;
+  // CURP
+  if (name === "curp") {
+    return value.length === 18 ? "valid" : "invalid";
+  }
+
+  // RFC representante legal
+  if (name === "repRfc") {
+    return value.length === 13 ? "valid" : "invalid";
+  }
+
+  // CURP representante legal
+  if (name === "repCurp") {
+    return value.length === 18 ? "valid" : "invalid";
+  }
+
+  // Email
+  if (name === "email") {
+    return isEmailValid(value) ? "valid" : "invalid";
+  }
+
+  // Teléfono (mínimo 10, máximo 15, solo números)
+  if (name === "telefono") {
+    const digits = value.replace(/\s+/g, "");
+    if (!isOnlyDigits(digits)) return "invalid";
+    return digits.length >= 10 && digits.length <= 15 ? "valid" : "invalid";
+  }
+
+  // CP (5 dígitos)
+  if (name === "cp" || name === "repCp") {
+    if (!isOnlyDigits(value)) return "invalid";
+    return value.length === 5 ? "valid" : "invalid";
+  }
+
+  // CLABE (18 dígitos)
+  if (name === "clabe") {
+    if (!isOnlyDigits(value)) return "invalid";
+    return value.length === 18 ? "valid" : "invalid";
+  }
+
+  // Cuenta (requerida) - valida solo dígitos y mínimo 6 (ajústalo si quieres)
+  if (name === "cuenta") {
+    const digits = value.replace(/\s+/g, "");
+    if (!isOnlyDigits(digits)) return "invalid";
+    return digits.length >= 6 ? "valid" : "invalid";
+  }
+
+  // =============================
+  // Genérico
+  // =============================
+  // si required y tiene valor -> valid
+  return input.required ? "valid" : "none";
 }
 
 function paintFieldState(input, state) {
-  input.classList.remove("input-pending", "input-valid", "input-invalid");
-
-  if (state === "pending") input.classList.add("input-pending");
+  input.classList.remove("input-valid", "input-invalid");
   if (state === "valid") input.classList.add("input-valid");
   if (state === "invalid") input.classList.add("input-invalid");
 }
