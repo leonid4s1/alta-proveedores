@@ -83,7 +83,28 @@ async function crearProveedor(data, archivos = []) {
     const file = archivos[i];
 
     // Etiqueta segun el orden del input en el formulario
-    const etiqueta = etiquetasDocs[i] || `DOCUMENTO_${i + 1}`;
+    const MAPEO_DOCUMENTOS_MORAL = {
+      id_representante: 'IDENTIFICACION_REPRESENTANTE',
+      csf_pm: 'CONSTANCIA_SITUACION_FISCAL_EMPRESA',
+      csf_rep: 'CONSTANCIA_SITUACION_FISCAL_REPRESENTANTE',
+      domicilio_pm: 'COMPROBANTE_DOMICILIO_FISCAL_EMPRESA',
+      acta_constitutiva: 'ACTA_CONSTITUTIVA',
+      poder_rep: 'PODER_REPRESENTANTE',
+      caratula_banco: 'ESTADO_CUENTA',
+      cumplimiento_sat: 'CONSTANCIA_CUMPLIMIENTO_SAT',
+      cumplimiento_imss: 'CONSTANCIA_CUMPLIMIENTO_IMSS',
+      cumplimiento_infonavit: 'CONSTANCIA_CUMPLIMIENTO_INFONAVIT',
+      repse: 'REGISTRO_REPSE',
+      registro_patronal: 'REGISTRO_PATRONAL',
+      estados_financieros: 'ESTADOS_FINANCIEROS',
+      portafolio: 'PORTAFOLIO_PROYECTOS',
+      cfdis_nomina: 'CFDIS_NOMINA',
+      decl_pagos_imss: 'DECLARACIONES_PAGOS_IMSS',
+      decl_pagos_infonavit: 'DECLARACIONES_PAGOS_INFONAVIT',
+      decl_pagos_federales: 'DECLARACIONES_PAGOS_FEDERALES'
+    };
+
+    const etiqueta = MAPEO_DOCUMENTOS_MORAL[file.fieldname] || file.fieldname.toUpperCase();
 
     // Nombre final en Drive: RFC_ETIQUETA.pdf
     const nombreEnDriveBase = rfc || 'SIN_RFC';
