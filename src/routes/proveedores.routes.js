@@ -3,14 +3,19 @@ const express = require('express');
 const router = express.Router();
 
 const { uploadDocsMiddleware } = require('../middlewares/uploadMiddleware');
-const { 
-    crearProveedorController,
-    obtenerProveedoresController,
-    obtenerProveedorPorIdController,
-    actualizarEstatusProveedorController,
-    eliminarProveedorController,
-    generarHojaProveedorController
+const {
+  crearProveedorController,
+  obtenerProveedoresController,
+  obtenerProveedorPorIdController,
+  actualizarEstatusProveedorController,
+  eliminarProveedorController,
+  generarHojaProveedorController,
+  existePorRfc, // ✅ IMPORTA ESTA FUNCIÓN
 } = require('../controllers/proveedores.controller');
+
+// ✅ Chequeo de proveedores existentes
+// Si montas este router en /api/proveedores -> esto queda: GET /api/proveedores/existe?rfc=XXXX
+router.get('/existe', existePorRfc);
 
 // POST /api/proveedores -> alta con PDFs
 router.post('/', uploadDocsMiddleware, crearProveedorController);

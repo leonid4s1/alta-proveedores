@@ -566,3 +566,113 @@ input[type="file"]::file-selector-button:hover{
   border-radius: 12px;
   background: #fff;
 }
+
+/* =========================
+   TOAST (notificaciones)
+   ========================= */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+}
+
+.toast {
+  min-width: 280px;
+  max-width: 420px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--odes-border);
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: toastIn 180ms ease-out;
+}
+
+.toast-title {
+  font-weight: 700;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.toast-message {
+  margin: 2px 0 0 0;
+  font-size: 0.86rem;
+  color: #374151;
+}
+
+.toast-close {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: #6b7280;
+}
+
+.toast--success { border-left: 6px solid #16a34a; }
+.toast--error   { border-left: 6px solid #dc2626; }
+.toast--warning { border-left: 6px solid var(--odes-accent); }
+
+/* =========================
+   MODAL (confirmación/alerta importante)
+   ========================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--odes-border);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--odes-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--odes-primary);
+  font-weight: 700;
+}
+
+.modal-body {
+  padding: 14px 16px;
+  color: #374151;
+  font-size: 0.92rem;
+}
+
+.modal-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--odes-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@keyframes toastIn {
+  from { transform: translateY(-6px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}

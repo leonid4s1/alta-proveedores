@@ -3,6 +3,9 @@ const container = document.getElementById("formContainer");
 
 let currentForm = null;
 
+// ✅ Flag global: evita doble envío
+let isSubmitting = false;
+
 // Cuando cambia el tipo de proveedor, renderizamos el formulario correspondiente
 tipoSelect.addEventListener("change", () => {
   const tipo = tipoSelect.value;
@@ -19,12 +22,89 @@ tipoSelect.addEventListener("change", () => {
 
   attachSubmitListener();
   attachUppercaseListeners();
-  attachLiveValidation(tipo); // ✅ aquí
+  attachLiveValidation(tipo);
   attachStepper(tipo);
 });
 
-// ✅ Flag global (ponlo arriba del archivo, junto a currentForm)
-let isSubmitting = false;
+// =========================
+// TOAST / MODAL UI
+// =========================
+function ensureToastContainer() {
+  let c = document.querySelector(".toast-container");
+  if (!c) {
+    c = document.createElement("div");
+    c.className = "toast-container";
+    document.body.appendChild(c);
+  }
+  return c;
+}
+
+function showToast(type = "success", title = "Listo", message = "", ms = 3500) {
+  const container = ensureToastContainer();
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast--${type}`;
+
+  toast.innerHTML = `
+    <div>
+      <p class="toast-title">${title}</p>
+      ${message ? `<p class="toast-message">${message}</p>` : ""}
+    </div>
+    <button class="toast-close" aria-label="Cerrar">×</button>
+  `;
+
+  const close = () => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(-6px)";
+    setTimeout(() => toast.remove(), 150);
+  };
+
+  toast.querySelector(".toast-close").addEventListener("click", close);
+  container.appendChild(toast);
+
+  if (ms > 0) setTimeout(close, ms);
+}
+
+function showModal({ title = "Aviso", message = "", buttonText = "Aceptar" } = {}) {
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+
+  overlay.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3 class="modal-title">${title}</h3>
+        <button class="toast-close" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-body">${message}</div>
+      <div class="modal-footer">
+        <button class="btn btn-primary">${buttonText}</button>
+      </div>
+    </div>
+  `;
+
+  const close = () => overlay.remove();
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+  overlay.querySelector(".toast-close").addEventListener("click", close);
+  overlay.querySelector(".btn").addEventListener("click", close);
+
+  document.body.appendChild(overlay);
+}
+
+// =============================
+// HELPER: consultar RFC existente
+// =============================
+async function checkRfcExists(rfc) {
+  const url = `/api/proveedores/existe?rfc=${encodeURIComponent(rfc)}`;
+  const resp = await fetch(url, { method: "GET" });
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    throw new Error(data?.message || "No se pudo validar el RFC.");
+  }
+  return Boolean(data?.exists);
+}
 
 // =============================
 // SUBMIT FORMULARIO
@@ -32,17 +112,15 @@ let isSubmitting = false;
 function attachSubmitListener() {
   if (!currentForm) return;
 
-  // ✅ OJO: quitamos { once: true }
+  // ✅ no uses { once: true } para submit
   currentForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    // ✅ Evitar doble envío
     if (isSubmitting) return;
     isSubmitting = true;
 
     const tipo = tipoSelect.value;
 
-    // ✅ Feedback visual + bloquear botón
     const submitBtn = currentForm.querySelector('button[type="submit"]');
     const prevText = submitBtn ? submitBtn.textContent : "";
     if (submitBtn) {
@@ -54,9 +132,8 @@ function attachSubmitListener() {
     const errors = validateProveedorForm(tipo, currentForm);
     if (errors.length) {
       markRequiredFields(tipo);
-      alert(errors.join("\n"));
+      showToast("warning", "Revisa tu información", errors[0] || "Faltan campos por completar.");
 
-      // 🔁 Rehabilitar
       isSubmitting = false;
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -74,13 +151,23 @@ function attachSubmitListener() {
         body: formData,
       });
 
-      const data = await resp.json();
+      const data = await resp.json().catch(() => ({}));
 
       if (!resp.ok) {
         console.error(data);
-        alert(data.message || "Ocurrió un error al guardar el proveedor.");
 
-        // 🔁 Rehabilitar
+        // Si el backend manda 409 por duplicado, mensaje claro
+        if (resp.status === 409 || data?.code === "PROVEEDOR_DUPLICADO") {
+          showModal({
+            title: "Proveedor ya registrado",
+            message:
+              "Este RFC ya está dado de alta. Si crees que es un error, contacta al área correspondiente.",
+            buttonText: "Entendido",
+          });
+        } else {
+          showToast("error", "No se pudo guardar", data.message || "Ocurrió un error al guardar el proveedor.");
+        }
+
         isSubmitting = false;
         if (submitBtn) {
           submitBtn.disabled = false;
@@ -89,25 +176,21 @@ function attachSubmitListener() {
         return;
       }
 
-      // ✅ ÉXITO: mensaje + limpieza + redirección
-      alert(
-        "Solicitud enviada correctamente. Te regresaremos al inicio de Alta de Proveedores."
-      );
-      console.log("Respuesta backend:", data);
+      // ✅ ÉXITO
+      showToast("success", "Solicitud enviada", "Te regresaremos al inicio de Alta de Proveedores.", 2500);
 
-      // limpiar el formulario y select
+      // limpiar
       if (currentForm) currentForm.reset();
       tipoSelect.value = "";
       container.innerHTML = "";
       currentForm = null;
 
-      // ✅ redirigir al inicio
-      window.location.assign("/formulario");
+      // redirigir (dejamos que el toast se vea un momento)
+      setTimeout(() => window.location.assign("/formulario"), 900);
     } catch (error) {
       console.error(error);
-      alert("Error de red al mandar el formulario.");
+      showToast("error", "Error de red", "No se pudo enviar la solicitud. Intenta nuevamente.");
 
-      // 🔁 Rehabilitar
       isSubmitting = false;
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -118,138 +201,11 @@ function attachSubmitListener() {
 }
 
 // =============================
-// VALIDACIÓN
-// =============================
-function validateProveedorForm(tipo, form) {
-  const errors = [];
-
-  // campos comunes (fisica y moral)
-  validateCamposComunes(form, errors);
-
-  if (tipo === "fisica") {
-    validatePersonaFisica(form, errors);
-  } else if (tipo === "moral") {
-    validatePersonaMoral(form, errors);
-  }
-
-  // Validar archivos PDF
-  const fileInputs = form.querySelectorAll('input[type="file"]');
-  fileInputs.forEach((input) => {
-    const f = input.files && input.files[0];
-    if (f) {
-      const name = (f.name || "").toLowerCase();
-      const okExt = name.endsWith(".pdf");
-      const okMime = f.type === "application/pdf";
-      if (!okExt || !okMime) {
-        errors.push("Solo se permiten archivos PDF.");
-      }
-    }
-  });
-
-  return errors;
-}
-
-function validateCamposComunes(form, errors) {
-  // contacto
-  const email = form.querySelector('input[name="email"]')?.value.trim();
-  const telefonoRaw = form.querySelector('input[name="telefono"]')?.value.trim();
-
-  if (!email) errors.push("Email es requerido.");
-  else if (!isEmailValid(email)) errors.push("Email no tiene un formato válido.");
-
-  if (!telefonoRaw) errors.push("Teléfono es requerido.");
-  else {
-    const telefono = telefonoRaw.replace(/\s+/g, "");
-    if (!isOnlyDigits(telefono)) errors.push("Teléfono solo debe contener números.");
-    else if (telefono.length < 10 || telefono.length > 15)
-      errors.push("Teléfono debe tener entre 10 y 15 dígitos.");
-  }
-
-  // bancario
-  const banco = form.querySelector('input[name="banco"]')?.value.trim();
-  const cuentaRaw = form.querySelector('input[name="cuenta"]')?.value.trim();
-  const clabeRaw = form.querySelector('input[name="clabe"]')?.value.trim();
-
-  if (!banco) errors.push("Banco es requerido.");
-
-  if (!cuentaRaw) errors.push("Cuenta es requerida.");
-  else {
-    const cuenta = cuentaRaw.replace(/\s+/g, "");
-    if (!isOnlyDigits(cuenta)) errors.push("Cuenta solo debe contener números.");
-    else if (cuenta.length < 6) errors.push("Cuenta debe tener al menos 6 dígitos.");
-  }
-
-  if (!clabeRaw) errors.push("CLABE es requerida (18 dígitos).");
-  else {
-    const clabe = clabeRaw.replace(/\s+/g, "");
-    if (!isOnlyDigits(clabe)) errors.push("CLABE solo debe contener números.");
-    else if (clabe.length !== 18) errors.push("CLABE debe tener 18 dígitos.");
-  }
-
-  // CP empresa (5 dígitos)
-  const cpRaw = form.querySelector('input[name="cp"]')?.value.trim();
-  if (!cpRaw) errors.push("Código postal es requerido.");
-  else {
-    const cp = cpRaw.replace(/\s+/g, "");
-    if (!isOnlyDigits(cp)) errors.push("Código postal solo debe contener números.");
-    else if (cp.length !== 5) errors.push("Código postal debe tener 5 dígitos.");
-  }
-
-  // CP representante (solo aplica si es persona moral y existe el input)
-  const repCpRaw = form.querySelector('input[name="repCp"]')?.value.trim();
-  if (form.querySelector('input[name="repCp"]')) {
-    if (!repCpRaw) errors.push("Código postal del representante legal es requerido.");
-    else {
-      const repCp = repCpRaw.replace(/\s+/g, "");
-      if (!isOnlyDigits(repCp)) errors.push("CP del representante solo debe contener números.");
-      else if (repCp.length !== 5) errors.push("CP del representante debe tener 5 dígitos.");
-    }
-  }
-}
-
-function validatePersonaFisica(form, errors) {
-  const rfc = form.querySelector('input[name="rfc"]')?.value.trim();
-  const curp = form.querySelector('input[name="curp"]')?.value.trim();
-
-  // RFC persona física: 13 caracteres
-  if (!rfc || rfc.length !== 13) {
-    errors.push("El RFC de persona física debe tener 13 caracteres.");
-  }
-
-  // CURP: 18 caracteres
-  if (!curp || curp.length !== 18) {
-    errors.push("La CURP debe tener 18 caracteres.");
-  }
-}
-
-function validatePersonaMoral(form, errors) {
-  const rfcEmpresa = form.querySelector('input[name="rfc"]')?.value.trim();
-  const repRfc = form.querySelector('input[name="repRfc"]')?.value.trim();
-  const repCurp = form.querySelector('input[name="repCurp"]')?.value.trim();
-
-  // RFC persona moral: 12 caracteres
-  if (!rfcEmpresa || rfcEmpresa.length !== 12) {
-    errors.push("El RFC de persona moral debe tener 12 caracteres.");
-  }
-
-  // RFC representante legal: 13 caracteres
-  if (!repRfc || repRfc.length !== 13) {
-    errors.push("El RFC del representante legal debe tener 13 caracteres.");
-  }
-
-  // CURP representante legal: 18 caracteres
-  if (!repCurp || repCurp.length !== 18) {
-    errors.push("La CURP del representante legal debe tener 18 caracteres.");
-  }
-}
-
-// =============================
 // UPPERCASE LISTENERS
 // =============================
 function attachUppercaseListeners() {
   if (!currentForm) return;
 
-  // Campos que se deben convertir a mayúsculas al escribir
   const uppercaseInputs = currentForm.querySelectorAll(
     'input[name="rfc"], input[name="curp"], input[name="repRfc"], input[name="repCurp"]'
   );
@@ -262,7 +218,7 @@ function attachUppercaseListeners() {
 }
 
 // =============================
-// LIVE VALIDATION (rojo/verde en vivo)
+// LIVE VALIDATION (rojo/verde)
 // =============================
 function attachLiveValidation(tipo) {
   if (!currentForm) return;
@@ -270,7 +226,6 @@ function attachLiveValidation(tipo) {
   const inputs = currentForm.querySelectorAll("input, select, textarea");
 
   inputs.forEach((input) => {
-    // no pintamos file inputs
     if (input.type === "file") return;
 
     const handler = () => {
@@ -278,17 +233,14 @@ function attachLiveValidation(tipo) {
       paintFieldState(input, state);
     };
 
-    // input: texto mientras escribe
     input.addEventListener("input", handler);
-    // change: selects, date, etc.
     input.addEventListener("change", handler);
-    // blur: cuando sale del campo
     input.addEventListener("blur", handler);
   });
 }
 
 // =============================
-// STEPPER (secciones)
+// STEPPER + BLOQUEO RFC DUPLICADO
 // =============================
 function attachStepper(tipo) {
   if (!currentForm) return;
@@ -296,45 +248,117 @@ function attachStepper(tipo) {
   const sections = currentForm.querySelectorAll(".form-section");
   const navButtons = currentForm.querySelectorAll(".btn-next-section, .btn-prev-section");
 
-  // Mostrar solo la primera sección al render
   sections.forEach((sec, idx) => {
     sec.style.display = idx === 0 ? "block" : "none";
   });
 
   navButtons.forEach((btn) => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", async (e) => {
       e.preventDefault();
 
       const nextId = btn.getAttribute("data-next");
       const prevId = btn.getAttribute("data-prev");
 
+      // =============================
+      // AVANZAR
+      // =============================
       if (nextId) {
-        const target = currentForm.querySelector(
-          `.form-section[data-section-id="${nextId}"]`
-        );
-        if (target) {
-          // Validación visual: marcar inválidos los required vacíos
-          markRequiredFields(tipo);
-          // si hay inválidos, no avanzar
-          if (currentForm.querySelector(".input-invalid")) {
-            alert("Por favor completa los campos requeridos antes de continuar.");
+        const target = currentForm.querySelector(`.form-section[data-section-id="${nextId}"]`);
+        if (!target) return;
+
+        // Validación visual sección actual
+        markRequiredFields(tipo);
+
+        const visibleSection = Array.from(sections).find((sec) => sec.style.display !== "none");
+        const invalidInSection = visibleSection?.querySelector(".input-invalid");
+        if (invalidInSection) {
+          showToast("warning", "Campos incompletos", "Completa los campos requeridos para continuar.");
+          invalidInSection.focus?.();
+          return;
+        }
+
+        // ✅ Bloqueo por RFC duplicado SOLO al salir del paso 1 (pf-datos / pm-datos)
+        const isFirstStep =
+          visibleSection?.getAttribute("data-section-id") === "pm-datos" ||
+          visibleSection?.getAttribute("data-section-id") === "pf-datos";
+
+        if (isFirstStep) {
+          const rfcInput = currentForm.querySelector('input[name="rfc"]');
+          const rfc = (rfcInput?.value || "").trim().toUpperCase();
+
+          if (!rfc) {
+            if (rfcInput) paintFieldState(rfcInput, "invalid");
+            showToast("warning", "RFC requerido", "Ingresa el RFC para continuar.");
+            rfcInput?.focus?.();
             return;
           }
-          sections.forEach((s) => (s.style.display = "none"));
-          target.style.display = "block";
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+          const rfcOk =
+            (tipo === "moral" && rfc.length === 12) ||
+            (tipo === "fisica" && rfc.length === 13);
+
+          if (!rfcOk) {
+            if (rfcInput) paintFieldState(rfcInput, "invalid");
+            showToast(
+              "warning",
+              "RFC inválido",
+              tipo === "moral"
+                ? "El RFC de persona moral debe tener 12 caracteres."
+                : "El RFC de persona física debe tener 13 caracteres."
+            );
+            rfcInput?.focus?.();
+            return;
+          }
+
+          const oldText = btn.textContent;
+          btn.disabled = true;
+          btn.textContent = "Validando...";
+
+          try {
+            const exists = await checkRfcExists(rfc);
+
+            if (exists) {
+              if (rfcInput) {
+                paintFieldState(rfcInput, "invalid");
+                rfcInput.focus?.();
+              }
+              showModal({
+                title: "Proveedor ya registrado",
+                message:
+                  "Este RFC ya está dado de alta. Si crees que es un error, contacta al área correspondiente.",
+                buttonText: "Entendido",
+              });
+              return;
+            }
+
+            if (rfcInput) paintFieldState(rfcInput, "valid");
+          } catch (err) {
+            console.error(err);
+            showToast("error", "No se pudo validar RFC", "Intenta nuevamente en unos segundos.");
+            return;
+          } finally {
+            btn.disabled = false;
+            btn.textContent = oldText;
+          }
         }
+
+        // Avanzar
+        sections.forEach((s) => (s.style.display = "none"));
+        target.style.display = "block";
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
       }
 
+      // =============================
+      // REGRESAR
+      // =============================
       if (prevId) {
-        const target = currentForm.querySelector(
-          `.form-section[data-section-id="${prevId}"]`
-        );
-        if (target) {
-          sections.forEach((s) => (s.style.display = "none"));
-          target.style.display = "block";
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        const target = currentForm.querySelector(`.form-section[data-section-id="${prevId}"]`);
+        if (!target) return;
+
+        sections.forEach((s) => (s.style.display = "none"));
+        target.style.display = "block";
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
   });
@@ -356,7 +380,6 @@ function markRequiredFields(tipo) {
 }
 
 function isEmailValid(email) {
-  // simple y suficiente para UI (sin ser excesivamente estricto)
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
@@ -364,26 +387,16 @@ function isOnlyDigits(str) {
   return /^\d+$/.test(str);
 }
 
-// Valida un solo campo y devuelve "pending" | "valid" | "invalid" | "none"
+// Valida un solo campo y devuelve "valid" | "invalid" | "none"
 function validateField(tipo, input) {
-  // no pintamos file inputs
   if (input.type === "file") return "none";
 
   const name = input.name;
-  const rawValue = input.value || "";
-  const value = rawValue.trim();
+  const value = (input.value || "").trim();
 
-  // Obligatorio vacío -> INVALID (rojo)
   if (input.required && !value) return "invalid";
-
-  // si no es required y está vacío, no validar (opcionales)
   if (!input.required && !value) return "none";
 
-  // =============================
-  // Validaciones específicas
-  // =============================
-
-  // RFC
   if (name === "rfc") {
     return tipo === "moral"
       ? value.length === 12
@@ -394,56 +407,35 @@ function validateField(tipo, input) {
       : "invalid";
   }
 
-  // CURP
-  if (name === "curp") {
-    return value.length === 18 ? "valid" : "invalid";
-  }
+  if (name === "curp") return value.length === 18 ? "valid" : "invalid";
+  if (name === "repRfc") return value.length === 13 ? "valid" : "invalid";
+  if (name === "repCurp") return value.length === 18 ? "valid" : "invalid";
+  if (name === "email") return isEmailValid(value) ? "valid" : "invalid";
 
-  // RFC representante legal
-  if (name === "repRfc") {
-    return value.length === 13 ? "valid" : "invalid";
-  }
-
-  // CURP representante legal
-  if (name === "repCurp") {
-    return value.length === 18 ? "valid" : "invalid";
-  }
-
-  // Email
-  if (name === "email") {
-    return isEmailValid(value) ? "valid" : "invalid";
-  }
-
-  // Teléfono (mínimo 10, máximo 15, solo números)
   if (name === "telefono") {
     const digits = value.replace(/\s+/g, "");
     if (!isOnlyDigits(digits)) return "invalid";
     return digits.length >= 10 && digits.length <= 15 ? "valid" : "invalid";
   }
 
-  // CP (5 dígitos)
   if (name === "cp" || name === "repCp") {
-    if (!isOnlyDigits(value)) return "invalid";
-    return value.length === 5 ? "valid" : "invalid";
+    const digits = value.replace(/\s+/g, "");
+    if (!isOnlyDigits(digits)) return "invalid";
+    return digits.length === 5 ? "valid" : "invalid";
   }
 
-  // CLABE (18 dígitos)
   if (name === "clabe") {
-    if (!isOnlyDigits(value)) return "invalid";
-    return value.length === 18 ? "valid" : "invalid";
+    const digits = value.replace(/\s+/g, "");
+    if (!isOnlyDigits(digits)) return "invalid";
+    return digits.length === 18 ? "valid" : "invalid";
   }
 
-  // Cuenta (requerida) - valida solo dígitos y mínimo 6 (ajústalo si quieres)
   if (name === "cuenta") {
     const digits = value.replace(/\s+/g, "");
     if (!isOnlyDigits(digits)) return "invalid";
     return digits.length >= 6 ? "valid" : "invalid";
   }
 
-  // =============================
-  // Genérico
-  // =============================
-  // si required y tiene valor -> valid
   return input.required ? "valid" : "none";
 }
 

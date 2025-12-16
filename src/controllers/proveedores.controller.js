@@ -7,6 +7,27 @@ const { crearProveedor,
         eliminarProveedor
       } = require('../services/proveedores.service');
 
+// Chequeo proveedores existentes
+const db = require("../config/firestore");
+
+async function existePorRfc(req, res) {
+  try {
+    const rfc = String(req.query.rfc || "").trim().toUpperCase();
+    if (!rfc) return res.status(400).json({ message: "RFC requerido" });
+
+    const snap = await db
+      .collection("proveedores")
+      .where("datosGenerales.rfc", "==", rfc)
+      .limit(1)
+      .get();
+
+    return res.json({ exists: !snap.empty });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error consultando RFC" });
+  }
+}
+
 // POST /api/proveedores
 async function crearProveedorController(req, res, next) {
   try {
@@ -194,5 +215,6 @@ module.exports = {
   obtenerProveedorPorIdController,
   actualizarEstatusProveedorController,
   eliminarProveedorController,
-  generarHojaProveedorController
+  generarHojaProveedorController,
+  existePorRfc
 };
