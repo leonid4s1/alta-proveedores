@@ -612,7 +612,7 @@ function renderPersonaFisica() {
 function renderPersonaMoral() {
   return `
     <form id="formProveedor" enctype="multipart/form-data">
-      
+
       <!-- Sección 1: Datos de Persona Moral -->
       <div class="form-section" data-section-id="pm-datos">
         <div class="form-section-header">
@@ -852,89 +852,130 @@ function renderPersonaMoral() {
             <h3>Documentos (PDF)</h3>
           </div>
         </div>
+
         <div class="form-section-body">
-
           <h4>Segmento 1: Documentos fiscales básicos (obligatorios)</h4>
+          <div class="docs-grid">
+            <div class="docs-item">
+              <label>Identificación oficial del representante legal (INE / Pasaporte) (PDF):</label>
+              <input type="file" name="docPmIdentificacionRep" accept="application/pdf" required />
+            </div>
 
-          <label>Identificación oficial del representante legal (INE / Pasaporte) (PDF):</label>
-          <input type="file" name="docPmIdentificacionRep" accept="application/pdf" required />
+            <div class="docs-item">
+              <label>Constancia de situación fiscal (Persona moral) (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPmConstanciaFiscalEmpresa" accept="application/pdf" required />
+            </div>
 
-          <label>Constancia de situación fiscal (Persona moral) (PDF):</label>
-          <small class="field-hint">Fecha no mayor a 1 mes</small>
-          <input type="file" name="docPmConstanciaFiscalEmpresa" accept="application/pdf" required />
+            <div class="docs-item">
+              <label>Constancia de situación fiscal (Representante legal) (PDF):</label>
+              <input type="file" name="docPmConstanciaFiscalRep" accept="application/pdf" required />
+            </div>
 
-          <label>Constancia de situación fiscal (Representante legal) (PDF):</label>
-          <input type="file" name="docPmConstanciaFiscalRep" accept="application/pdf" required />
-
-          <label>Comprobante de domicilio fiscal (Persona moral) (PDF):</label>
-          <small class="field-hint">Fecha no mayor a 1 mes</small>
-          <input type="file" name="docPmDomicilioFiscalEmpresa" accept="application/pdf" required />
+            <div class="docs-item">
+              <label>Comprobante de domicilio fiscal (Persona moral) (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPmDomicilioFiscalEmpresa" accept="application/pdf" required />
+            </div>
+          </div>
 
           <hr class="section-divider" />
 
           <h4>Segmento 2: Constitución y representación</h4>
+          <div class="docs-grid">
+            <div class="docs-item">
+              <label>Acta constitutiva y/o última protocolización (PDF):</label>
+              <input type="file" name="docPmActaConstitutiva" accept="application/pdf" required />
+            </div>
 
-          <label>Acta constitutiva y/o última protocolización (PDF):</label>
-          <input type="file" name="docPmActaConstitutiva" accept="application/pdf" required />
-
-          <label>Poder del representante legal (PDF):</label>
-          <small class="field-hint">Opcional si no aparece en el acta constitutiva</small>
-          <input type="file" name="docPmPoderRepresentante" accept="application/pdf" />
+            <div class="docs-item">
+              <label>Poder del representante legal (PDF):</label>
+              <small class="field-hint">Opcional si no aparece en el acta constitutiva</small>
+              <input type="file" name="docPmPoderRepresentante" accept="application/pdf" />
+            </div>
+          </div>
 
           <hr class="section-divider" />
 
           <h4>Segmento 3: Bancario y SAT (obligatorios)</h4>
+          <div class="docs-grid">
+            <div class="docs-item">
+              <label>Carátula de estado de cuenta bancario (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPmCaratulaBanco" accept="application/pdf" required />
+            </div>
 
-          <label>Carátula de estado de cuenta bancario (PDF):</label>
-          <small class="field-hint">Fecha no mayor a 1 mes</small>
-          <input type="file" name="docPmCaratulaBanco" accept="application/pdf" required />
-
-          <label>Constancia de cumplimiento fiscal - SAT (PDF):</label>
-          <small class="field-hint">Fecha no mayor a 1 mes</small>
-          <input type="file" name="docPmCumplimientoSAT" accept="application/pdf" required />
+            <div class="docs-item">
+              <label>Constancia de cumplimiento fiscal - SAT (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPmCumplimientoSAT" accept="application/pdf" required />
+            </div>
+          </div>
 
           <hr class="section-divider" />
 
           <h4>Segmento 4: Documentos opcionales</h4>
           <p class="field-hint">Todos los documentos de este segmento son opcionales.</p>
+          <div class="docs-grid">
+            <div class="docs-item">
+              <label>Constancia de cumplimiento - IMSS (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPmCumplimientoIMSS" accept="application/pdf" />
+            </div>
 
-          <label>Constancia de cumplimiento - IMSS (PDF):</label>
-          <small class="field-hint">Fecha no mayor a 1 mes</small>
-          <input type="file" name="docPmCumplimientoIMSS" accept="application/pdf" />
+            <div class="docs-item">
+              <label>Constancia de cumplimiento - INFONAVIT (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPmCumplimientoINFONAVIT" accept="application/pdf" />
+            </div>
 
-          <label>Constancia de cumplimiento - INFONAVIT (PDF):</label>
-          <small class="field-hint">Fecha no mayor a 1 mes</small>
-          <input type="file" name="docPmCumplimientoINFONAVIT" accept="application/pdf" />
+            <div class="docs-item">
+              <label>REPSE (Registro de Prestadoras de Servicios Especializados) (PDF):</label>
+              <small class="field-hint">Aplica solo si se prestan servicios especializados</small>
+              <input type="file" name="docPmREPSE" accept="application/pdf" />
+            </div>
 
-          <label>REPSE (Registro de Prestadoras de Servicios Especializados) (PDF):</label>
-          <small class="field-hint">Aplica solo si se prestan servicios especializados</small>
-          <input type="file" name="docPmREPSE" accept="application/pdf" />
+            <div class="docs-item">
+              <label>Registro patronal (PDF):</label>
+              <input type="file" name="docPmRegistroPatronal" accept="application/pdf" />
+            </div>
 
-          <label>Registro patronal (PDF):</label>
-          <input type="file" name="docPmRegistroPatronal" accept="application/pdf" />
+            <div class="docs-item">
+              <label>Estados financieros (Último ejercicio fiscal) (PDF):</label>
+              <input type="file" name="docPmEstadosFinancieros" accept="application/pdf" />
+            </div>
 
-          <label>Estados financieros (Último ejercicio fiscal) (PDF):</label>
-          <input type="file" name="docPmEstadosFinancieros" accept="application/pdf" />
-
-          <label>Portafolio de proyectos y/o experiencia previa (PDF):</label>
-          <input type="file" name="docPmPortafolio" accept="application/pdf" />
+            <div class="docs-item">
+              <label>Portafolio de proyectos y/o experiencia previa (PDF):</label>
+              <input type="file" name="docPmPortafolio" accept="application/pdf" />
+            </div>
+          </div>
 
           <hr class="section-divider" />
 
           <h4>Segmento 5: Documentación adicional obligatoria si aplica REPSE</h4>
           <p class="field-hint">Todos los documentos de este apartado son opcionales.</p>
+          <div class="docs-grid">
+            <div class="docs-item">
+              <label>CFDIs de nómina (PDF):</label>
+              <input type="file" name="docPmCfdisNomina" accept="application/pdf" />
+            </div>
 
-          <label>CFDIs de nómina (PDF):</label>
-          <input type="file" name="docPmCfdisNomina" accept="application/pdf" />
+            <div class="docs-item">
+              <label>Declaraciones y pagos - IMSS (PDF):</label>
+              <input type="file" name="docPmDeclaracionesPagosIMSS" accept="application/pdf" />
+            </div>
 
-          <label>Declaraciones y pagos - IMSS (PDF):</label>
-          <input type="file" name="docPmDeclaracionesPagosIMSS" accept="application/pdf" />
+            <div class="docs-item">
+              <label>Declaraciones y pagos - INFONAVIT (PDF):</label>
+              <input type="file" name="docPmDeclaracionesPagosINFONAVIT" accept="application/pdf" />
+            </div>
 
-          <label>Declaraciones y pagos - INFONAVIT (PDF):</label>
-          <input type="file" name="docPmDeclaracionesPagosINFONAVIT" accept="application/pdf" />
-
-          <label>Declaraciones y pagos - Impuestos federales (PDF):</label>
-          <input type="file" name="docPmDeclaracionesPagosFederales" accept="application/pdf" />
+            <div class="docs-item">
+              <label>Declaraciones y pagos - Impuestos federales (PDF):</label>
+              <input type="file" name="docPmDeclaracionesPagosFederales" accept="application/pdf" />
+            </div>
+          </div>
 
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">
