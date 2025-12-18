@@ -112,7 +112,10 @@ async function checkRfcExists(rfc) {
 function attachSubmitListener() {
   if (!currentForm) return;
 
-  // ✅ no uses { once: true } para submit
+  // ✅ evita listeners duplicados si se llama 2 veces sobre el mismo form
+  if (currentForm.dataset.submitBound === "1") return;
+  currentForm.dataset.submitBound = "1";
+
   currentForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -123,6 +126,15 @@ function attachSubmitListener() {
 
     const submitBtn = currentForm.querySelector('button[type="submit"]');
     const prevText = submitBtn ? submitBtn.textContent : "";
+
+    const restoreButton = () => {
+      isSubmitting = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = prevText;
+      }
+    };
+
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.textContent = "Enviando...";
@@ -133,12 +145,7 @@ function attachSubmitListener() {
     if (errors.length) {
       markRequiredFields(tipo);
       showToast("warning", "Revisa tu información", errors[0] || "Faltan campos por completar.");
-
-      isSubmitting = false;
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = prevText;
-      }
+      restoreButton();
       return;
     }
 
@@ -156,7 +163,6 @@ function attachSubmitListener() {
       if (!resp.ok) {
         console.error(data);
 
-        // Si el backend manda 409 por duplicado, mensaje claro
         if (resp.status === 409 || data?.code === "PROVEEDOR_DUPLICADO") {
           showModal({
             title: "Proveedor ya registrado",
@@ -165,14 +171,14 @@ function attachSubmitListener() {
             buttonText: "Entendido",
           });
         } else {
-          showToast("error", "No se pudo guardar", data.message || "Ocurrió un error al guardar el proveedor.");
+          showToast(
+            "error",
+            "No se pudo guardar",
+            data.message || "Ocurrió un error al guardar el proveedor."
+          );
         }
 
-        isSubmitting = false;
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = prevText;
-        }
+        restoreButton();
         return;
       }
 
@@ -180,22 +186,19 @@ function attachSubmitListener() {
       showToast("success", "Solicitud enviada", "Te regresaremos al inicio de Alta de Proveedores.", 2500);
 
       // limpiar
-      if (currentForm) currentForm.reset();
+      currentForm.reset();
       tipoSelect.value = "";
       container.innerHTML = "";
       currentForm = null;
 
       // redirigir (dejamos que el toast se vea un momento)
       setTimeout(() => window.location.assign("/formulario"), 900);
+
+      // ⚠️ no hacemos restoreButton() en éxito porque rediriges
     } catch (error) {
       console.error(error);
       showToast("error", "Error de red", "No se pudo enviar la solicitud. Intenta nuevamente.");
-
-      isSubmitting = false;
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = prevText;
-      }
+      restoreButton();
     }
   });
 }
@@ -437,6 +440,79 @@ function validateField(tipo, input) {
   }
 
   return input.required ? "valid" : "none";
+}
+
+// =============================
+// VALIDACIÓN DE FORM COMPLETO
+// =============================
+function validateProveedorForm(tipo, form) {
+  const errors = [];
+  if (!form) return ["Formulario no encontrado."];
+
+  // 1) Validar inputs requeridos NO file (texto/select/etc.)
+  const requiredNonFile = form.querySelectorAll("input[required], select[required], textarea[required]");
+  requiredNonFile.forEach((el) => {
+    if (el.type === "file") return;
+
+    const value = (el.value || "").trim();
+    if (!value) {
+      errors.push(`El campo "${prettyName(el.name)}" es obligatorio.`);
+      return;
+    }
+
+    // reglas extra usando tu validateField
+    const state = validateField(tipo, el);
+    if (state === "invalid") {
+      errors.push(`El campo "${prettyName(el.name)}" es inválido.`);
+    }
+  });
+
+  // 2) Validar FILES requeridos (PDF)
+  const requiredFiles = form.querySelectorAll('input[type="file"][required]');
+  requiredFiles.forEach((el) => {
+    const file = el.files && el.files[0];
+    if (!file) {
+      errors.push(`Debes adjuntar "${prettyName(el.name)}".`);
+      return;
+    }
+
+    // Fuerza PDF por MIME o extensión (por si el navegador no manda bien MIME)
+    const isPdf =
+      file.type === "application/pdf" || (file.name || "").toLowerCase().endsWith(".pdf");
+
+    if (!isPdf) {
+      errors.push(`El archivo "${prettyName(el.name)}" debe ser PDF.`);
+    }
+  });
+
+  // 3) Reglas específicas de RFC por tipo (ya lo haces en validateField, pero reforzamos)
+  const rfc = (form.querySelector('input[name="rfc"]')?.value || "").trim().toUpperCase();
+  if (rfc) {
+    const ok = (tipo === "moral" && rfc.length === 12) || (tipo === "fisica" && rfc.length === 13);
+    if (!ok) errors.push("RFC inválido para el tipo de proveedor.");
+  }
+
+  return errors;
+}
+
+function prettyName(name) {
+  // Puedes mapear nombres técnicos a algo más bonito si quieres
+  const map = {
+    razonSocial: "Razón social",
+    apellidoPaterno: "Apellido paterno",
+    nombre: "Nombre",
+    rfc: "RFC",
+    curp: "CURP",
+    email: "Email",
+    telefono: "Teléfono",
+    cp: "Código postal",
+    clabe: "CLABE",
+    cuenta: "Número de cuenta",
+    // docs (ejemplos)
+    docPmActaConstitutiva: "Acta constitutiva",
+    docPmIdentificacionRep: "Identificación del representante",
+  };
+  return map[name] || name || "campo";
 }
 
 function paintFieldState(input, state) {
