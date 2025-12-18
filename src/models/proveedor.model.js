@@ -40,6 +40,7 @@ function buildProveedor(data) {
     repApellidoMaterno,
     repNombre,
     repOtrosNombres,
+    repOcupacion, // ✅ NUEVO (opcional)
 
     // --- Poder del representante (persona moral) ---
     poderNumEscritura,
@@ -65,8 +66,8 @@ function buildProveedor(data) {
     repEstado,
     repPais,
 
-    // --- Datos adicionales comunes ---
-    ocupacion,
+    // --- Datos adicionales del proveedor (no del representante) ---
+    ocupacion, // (si la sigues usando para PF)
     giro,
 
     // --- Contacto ---
@@ -89,8 +90,8 @@ function buildProveedor(data) {
       nombre: nombre || null,
       otrosNombres: otrosNombres || null,
       razonSocial: razonSocial || null,
-      rfc: rfc || null,           // RFC de persona física o empresa
-      curp: curp || null          // CURP de persona física (en moral se usa repCurp abajo)
+      rfc: rfc || null,  // RFC de persona física o empresa
+      curp: curp || null // CURP de persona física (en moral se usa repCurp abajo)
     },
 
     // Domicilio fiscal principal (persona física o empresa)
@@ -102,7 +103,7 @@ function buildProveedor(data) {
       colonia: colonia || null,
       municipio: municipio || null,
       estado: estado || null,
-      pais: pais || 'México'
+      pais: pais || "México"
     },
 
     // Representante legal (solo se llenará para moral)
@@ -112,7 +113,8 @@ function buildProveedor(data) {
       nombre: repNombre || null,
       otrosNombres: repOtrosNombres || null,
       rfc: repRfc || null,
-      curp: repCurp || null
+      curp: repCurp || null,
+      ocupacion: repOcupacion || null // ✅ NUEVO (opcional)
     },
 
     // Domicilio fiscal del representante legal
@@ -124,7 +126,7 @@ function buildProveedor(data) {
       colonia: repColonia || null,
       municipio: repMunicipio || null,
       estado: repEstado || null,
-      pais: repPais || null
+      pais: repPais || "México"
     },
 
     // Datos del acta constitutiva de la empresa
@@ -155,7 +157,7 @@ function buildProveedor(data) {
       }
     },
 
-    // Ocupación / giro del proveedor (física o moral)
+    // Ocupación / giro del proveedor (PF o PM a nivel proveedor)
     datosAdicionales: {
       ocupacion: ocupacion || null,
       giro: giro || null
@@ -174,9 +176,17 @@ function buildProveedor(data) {
       clabe: clabe || null
     },
 
-    documentos: [],       // se llena en el servicio con lo de Drive
-    driveFolderId: null   // se llena en el servicio
+    documentos: [],
+    driveFolderId: null
   };
+
+  // ✅ Si NO es moral, limpia representante/domicilioRepresentante para que no guardes basura
+  if (proveedor.tipo !== "moral") {
+    proveedor.representante = null;
+    proveedor.domicilioRepresentante = null;
+    proveedor.actaConstitutiva = null;
+    proveedor.poderRepresentante = null;
+  }
 
   return proveedor;
 }

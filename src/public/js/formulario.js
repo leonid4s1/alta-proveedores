@@ -936,6 +936,9 @@ function renderPersonaMoral() {
           <label>País:</label>
           <input type="text" name="repPais" value="México" required />
 
+          <label>Ocupación (opcional):</label>
+          <input type="text" name ="repOcupacion" />
+
           <div class="form-actions">
             <button type="button" class="btn btn-secondary btn-prev-section" data-prev="pm-acta">
               Atrás
