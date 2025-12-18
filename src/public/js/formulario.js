@@ -555,6 +555,9 @@ function renderPersonaFisica() {
           <label>CURP (18 caracteres):</label>
           <input type="text" name="curp" maxlength="18" required />
 
+          <label>Ocupación (opcional):</label>
+          <input type="text" name="ocupacion"/>
+
           <div class="form-actions">
             <button type="button" class="btn btn-primary btn-next-section" data-next="pf-domicilio">
               Guardar y continuar
@@ -662,7 +665,7 @@ function renderPersonaFisica() {
         </div>
       </div>
 
-      <!-- Sección 5: Documentos -->
+      <!-- Sección 5: Documentos (PDF) -->
       <div class="form-section" data-section-id="pf-documentos">
         <div class="form-section-header">
           <div class="form-section-title">
@@ -670,36 +673,110 @@ function renderPersonaFisica() {
             <h3>Documentos (PDF)</h3>
           </div>
         </div>
+
         <div class="form-section-body">
-          <label>Identificación oficial (PDF):</label>
-          <input type="file" name="docPfIdentificacion" accept="application/pdf" required />
 
-          <label>Constancia de situación fiscal (PDF):</label>
-          <input type="file" name="docPfConstanciaFiscal" accept="application/pdf" required />
+          <h4>Segmento 1: Documentos fiscales básicos (obligatorios)</h4>
+          <div class="docs-grid">
+            <div class="docs-item">
+              <label>Identificación oficial (INE / Pasaporte) (PDF):</label>
+              <input type="file" name="docPfIdentificacion" accept="application/pdf" required />
+            </div>
 
-          <label>Comprobante de domicilio fiscal (PDF):</label>
-          <input type="file" name="docPfDomicilioFiscal" accept="application/pdf" required />
+            <div class="docs-item">
+              <label>Constancia de situación fiscal (PDF):</label>
+              <input type="file" name="docPfConstanciaFiscal" accept="application/pdf" required />
+            </div>
 
-          <label>Carátula de estado de cuenta bancario (PDF):</label>
-          <input type="file" name="docPfCaratulaBanco" accept="application/pdf" required />
+            <div class="docs-item">
+              <label>Comprobante de domicilio fiscal (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPfDomicilioFiscal" accept="application/pdf" required />
+            </div>
+          </div>
 
-          <label>Constancia de cumplimiento fiscal – SAT (PDF):</label>
-          <input type="file" name="docPfCumplimientoSAT" accept="application/pdf" required />
+          <hr class="section-divider" />
 
-          <label>Constancia de cumplimiento – IMSS (opcional, PDF):</label>
-          <input type="file" name="docPfCumplimientoIMSS" accept="application/pdf" />
+          <h4>Segmento 2: Bancario y SAT (obligatorios)</h4>
+          <div class="docs-grid">
+            <div class="docs-item">
+              <label>Carátula de estado de cuenta bancario (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPfCaratulaBanco" accept="application/pdf" required />
+            </div>
 
-          <label>Constancia de cumplimiento – INFONAVIT (opcional, PDF):</label>
-          <input type="file" name="docPfCumplimientoINFONAVIT" accept="application/pdf" />
+            <div class="docs-item">
+              <label>Constancia de cumplimiento fiscal - SAT (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPfCumplimientoSAT" accept="application/pdf" required />
+            </div>
+          </div>
 
-          <label>Registro REPSE (opcional, PDF):</label>
-          <input type="file" name="docPfREPSE" accept="application/pdf" />
+          <hr class="section-divider" />
 
-          <label>Registro patronal (opcional, PDF):</label>
-          <input type="file" name="docPfRegistroPatronal" accept="application/pdf" />
+          <h4>Segmento 3: Documentos opcionales</h4>
+          <p class="field-hint">Todos los documentos de este segmento son opcionales.</p>
+          <div class="docs-grid">
+            <div class="docs-item">
+              <label>Constancia de cumplimiento - IMSS (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPfCumplimientoIMSS" accept="application/pdf" />
+            </div>
 
-          <label>Portafolio / experiencia (opcional, PDF):</label>
-          <input type="file" name="docPfPortafolio" accept="application/pdf" />
+            <!-- ⚠️ Si INFONAVIT es obligatorio, muévelo a segmento 2 y pon required -->
+            <div class="docs-item">
+              <label>Constancia de cumplimiento - INFONAVIT (PDF):</label>
+              <small class="field-hint">Fecha no mayor a 1 mes</small>
+              <input type="file" name="docPfCumplimientoINFONAVIT" accept="application/pdf" required />
+            </div>
+
+            <div class="docs-item">
+              <label>Registro patronal (PDF):</label>
+              <input type="file" name="docPfRegistroPatronal" accept="application/pdf" />
+            </div>
+
+            <div class="docs-item">
+              <label>Portafolio de proyectos y/o experiencia previa (PDF):</label>
+              <input type="file" name="docPfPortafolio" accept="application/pdf" />
+            </div>
+          </div>
+
+          <hr class="section-divider" />
+
+          <h4>Segmento 4: Documentos adicionales si aplica REPSE</h4>
+          <p class="field-hint">Aplica solo si se prestan servicios especializados.</p>
+          <div class="docs-grid">
+            <div class="docs-item">
+              <label>REPSE (Registro de Prestadoras de Servicios Especializados) (PDF):</label>
+              <input type="file" name="docPfREPSE" accept="application/pdf" />
+            </div>
+          </div>
+
+          <hr class="section-divider" />
+
+          <h4>Segmento 5: Documentación adicional obligatoria si aplica REPSE</h4>
+          <p class="field-hint">Todos los documentos de este apartado son opcionales (solo si aplica REPSE).</p>
+          <div class="docs-grid">
+            <div class="docs-item">
+              <label>CFDIs de nómina (PDF):</label>
+              <input type="file" name="docPfCfdisNomina" accept="application/pdf" />
+            </div>
+
+            <div class="docs-item">
+              <label>Declaraciones y pagos - IMSS (PDF):</label>
+              <input type="file" name="docPfDeclaracionesPagosIMSS" accept="application/pdf" />
+            </div>
+
+            <div class="docs-item">
+              <label>Declaraciones y pagos - INFONAVIT (PDF):</label>
+              <input type="file" name="docPfDeclaracionesPagosINFONAVIT" accept="application/pdf" />
+            </div>
+
+            <div class="docs-item">
+              <label>Declaraciones y pagos - Impuestos federales (PDF):</label>
+              <input type="file" name="docPfDeclaracionesPagosFederales" accept="application/pdf" />
+            </div>
+          </div>
 
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">
