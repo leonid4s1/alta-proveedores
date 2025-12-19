@@ -130,150 +130,261 @@ async function generarHojaProveedorController(req, res, next) {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `inline; filename="hoja_proveedor_${rfc}.pdf"`);
 
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({ margin: 50, size: "LETTER" });
     doc.pipe(res);
 
     // =====================
-    // Título
+    // Helpers de formato
     // =====================
-    doc.fontSize(12).text(`Tipo: ${proveedor.tipo || ""}`);
+    const pageBottomY = () => doc.page.height - doc.page.margins.bottom;
+    const ensureSpace = (needed = 60) => {
+      if (doc.y + needed > pageBottomY()) doc.addPage();
+    };
+
+    const fmtDate = (value) => {
+      if (!value) return "";
+      const d = value?._seconds ? new Date(value._seconds * 1000) : new Date(value);
+      if (Number.isNaN(d.getTime())) return "";
+      return d.toLocaleDateString();
+    };
+
+    const safe = (v) => (v === null || v === undefined ? "" : String(v));
+
+    const title = (text) => {
+      ensureSpace(40);
+      doc.font("Helvetica-Bold").fontSize(13).text(text);
+      doc.moveDown(0.3);
+      doc
+        .moveTo(doc.page.margins.left, doc.y)
+        .lineTo(doc.page.width - doc.page.margins.right, doc.y)
+        .strokeColor("#d0d0d0")
+        .stroke();
+      doc.moveDown(0.6);
+      doc.font("Helvetica").fontSize(11);
+    };
+
+    const kv = (label, value) => {
+      const v = safe(value);
+      if (!v) return;
+      doc.font("Helvetica-Bold").text(`${label}: `, { continued: true });
+      doc.font("Helvetica").text(v);
+    };
+
+    const twoCol = (pairsLeft = [], pairsRight = []) => {
+      ensureSpace(90);
+
+      const leftX = doc.page.margins.left;
+      const rightX = doc.page.width / 2 + 10;
+      const colWidth = doc.page.width / 2 - doc.page.margins.left - 20;
+
+      const yStart = doc.y;
+
+      // Columna izquierda
+      doc.x = leftX;
+      doc.y = yStart;
+      pairsLeft.forEach(([k, v]) => {
+        if (!safe(v)) return;
+        doc.font("Helvetica-Bold").text(`${k}: `, { continued: true, width: colWidth });
+        doc.font("Helvetica").text(safe(v), { width: colWidth });
+      });
+
+      const yAfterLeft = doc.y;
+
+      // Columna derecha
+      doc.x = rightX;
+      doc.y = yStart;
+      pairsRight.forEach(([k, v]) => {
+        if (!safe(v)) return;
+        doc.font("Helvetica-Bold").text(`${k}: `, { continued: true, width: colWidth });
+        doc.font("Helvetica").text(safe(v), { width: colWidth });
+      });
+
+      // Baja al mayor Y
+      doc.x = leftX;
+      doc.y = Math.max(yAfterLeft, doc.y) + 6;
+      doc.font("Helvetica").fontSize(11);
+    };
+
+    // =====================
+    // Header bonito
+    // =====================
+    const creadoEn = fmtDate(proveedor.creadoEn);
+    const estatus = safe(proveedor.estatus || "pendiente_revision");
+    const tipo = safe(proveedor.tipo || "");
+
+    doc.font("Helvetica-Bold").fontSize(18).text("Hoja de Proveedor");
+    doc.moveDown(0.2);
+    doc.font("Helvetica").fontSize(11).fillColor("#444");
+
+    twoCol(
+      [
+        ["Tipo", tipo],
+        ["RFC", rfc],
+      ],
+      [
+        ["Estatus", estatus],
+        ["Creado en", creadoEn],
+      ]
+    );
+
+    doc.fillColor("#000");
+
+    // =====================
+    // Datos Generales
+    // =====================
+    title("Datos generales");
 
     if (proveedor.tipo === "moral") {
-      doc.text(`Razón Social: ${proveedor.datosGenerales?.razonSocial || ""}`);
+      const dg = proveedor.datosGenerales || {};
+      twoCol(
+        [
+          ["Razón social", dg.razonSocial],
+          ["RFC", dg.rfc],
+        ],
+        [
+          ["Tipo", "Persona moral"],
+        ]
+      );
     } else {
+      const dg = proveedor.datosGenerales || {};
       const nombre = [
-        proveedor.datosGenerales?.apellidoPaterno || "",
-        proveedor.datosGenerales?.apellidoMaterno || "",
-        proveedor.datosGenerales?.nombre || "",
-      ]
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim();
+        dg.apellidoPaterno || "",
+        dg.apellidoMaterno || "",
+        dg.nombre || "",
+      ].join(" ").replace(/\s+/g, " ").trim();
 
-      doc.text(`Nombre: ${nombre}`);
+      const ocup = proveedor.datosAdicionales?.ocupacion || "";
+
+      twoCol(
+        [
+          ["Nombre", nombre],
+          ["RFC", dg.rfc],
+          ["CURP", dg.curp], // ✅ PF faltante
+        ],
+        [
+          ["Tipo", "Persona física"],
+          ["Ocupación", ocup], // ✅ opcional
+        ]
+      );
     }
 
-    doc.text(`RFC: ${rfc}`);
-    doc.text(`Estatus: ${proveedor.estatus || "pendiente_revision"}`);
-
-    if (proveedor.creadoEn) {
-      const d = proveedor.creadoEn._seconds
-        ? new Date(proveedor.creadoEn._seconds * 1000)
-        : new Date(proveedor.creadoEn);
-      doc.text(`Creado en: ${d.toLocaleDateString()}`);
-    }
-
-    doc.moveDown();
-
     // =====================
-    // Domicilio fiscal (FIX numExterior/numInterior)
+    // Domicilio Fiscal
     // =====================
+    title("Domicilio fiscal");
     const dom = proveedor.domicilioFiscal || {};
-    doc.fontSize(14).text("Domicilio Fiscal", { underline: true });
-    doc.fontSize(12);
-    doc.text(`Calle: ${dom.calle || ""}`);
-    doc.text(`Número Exterior: ${dom.numExterior || ""}`); // ✅ FIX (antes numeroExterior)
-    doc.text(`Número Interior: ${dom.numInterior || ""}`); // ✅ FIX (antes numeroInterior)
-    doc.text(`CP: ${dom.cp || ""}`);
-    doc.text(`Colonia / Asentamiento: ${dom.colonia || ""}`);
-    doc.text(`Municipio / Alcaldía: ${dom.municipio || ""}`);
-    doc.text(`Estado: ${dom.estado || ""}`);
-    doc.text(`País: ${dom.pais || ""}`);
-
-    doc.moveDown();
+    twoCol(
+      [
+        ["Calle", dom.calle],
+        ["No. exterior", dom.numExterior], // ✅
+        ["No. interior", dom.numInterior], // ✅
+        ["CP", dom.cp],
+      ],
+      [
+        ["Colonia / Asentamiento", dom.colonia],
+        ["Municipio / Alcaldía", dom.municipio],
+        ["Estado", dom.estado],
+        ["País", dom.pais],
+      ]
+    );
 
     // =====================
     // Contacto
     // =====================
+    title("Contacto");
     const contacto = proveedor.contacto || {};
-    doc.fontSize(14).text("Contacto", { underline: true });
-    doc.fontSize(12);
-    doc.text(`Correo: ${contacto.email || ""}`);
-    doc.text(`Teléfono: ${contacto.telefono || ""}`);
-
-    doc.moveDown();
+    twoCol(
+      [
+        ["Correo", contacto.email],
+      ],
+      [
+        ["Teléfono", contacto.telefono],
+      ]
+    );
 
     // =====================
-    // Bancario
+    // Datos Bancarios
     // =====================
+    title("Datos bancarios");
     const bancario = proveedor.bancario || {};
-    doc.fontSize(14).text("Datos Bancarios", { underline: true });
-    doc.fontSize(12);
-    doc.text(`Banco: ${bancario.banco || ""}`);
-    doc.text(`Cuenta: ${bancario.cuenta || ""}`);
-    doc.text(`CLABE: ${bancario.clabe || ""}`);
-
-    doc.moveDown();
+    twoCol(
+      [
+        ["Banco", bancario.banco],
+        ["Cuenta", bancario.cuenta],
+      ],
+      [
+        ["CLABE", bancario.clabe],
+      ]
+    );
 
     // =====================
-    // Persona moral: Representante + Acta + Poder
+    // Secciones extra para MORAL
     // =====================
     if (proveedor.tipo === "moral") {
       // Representante
+      title("Representante legal");
       const rep = proveedor.representante || {};
-      doc.fontSize(14).text("Representante Legal", { underline: true });
-      doc.fontSize(12);
-
       const repNombre = [
         rep.apellidoPaterno || "",
         rep.apellidoMaterno || "",
         rep.nombre || "",
         rep.otrosNombres || "",
-      ]
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim();
+      ].join(" ").replace(/\s+/g, " ").trim();
 
-      doc.text(`Nombre: ${repNombre}`);
-      doc.text(`RFC: ${rep.rfc || ""}`);
-      doc.text(`CURP: ${rep.curp || ""}`);
+      twoCol(
+        [
+          ["Nombre", repNombre],
+          ["RFC", rep.rfc],
+          ["CURP", rep.curp],
+        ],
+        [
+          ["Ocupación", rep.ocupacion || ""], // ✅ opcional
+        ]
+      );
 
-      // Ocupación opcional (repOcupacion -> rep.ocupacion en el model)
-      if (rep.ocupacion) doc.text(`Ocupación: ${rep.ocupacion}`);
-
-      doc.moveDown();
-
-      // Domicilio del representante
+      // Domicilio representante
+      title("Domicilio del representante");
       const domRep = proveedor.domicilioRepresentante || {};
-      doc.fontSize(14).text("Domicilio del Representante", { underline: true });
-      doc.fontSize(12);
-      doc.text(`Calle: ${domRep.calle || ""}`);
-      doc.text(`Número Exterior: ${domRep.numExterior || ""}`);
-      doc.text(`Número Interior: ${domRep.numInterior || ""}`);
-      doc.text(`CP: ${domRep.cp || ""}`);
-      doc.text(`Colonia / Asentamiento: ${domRep.colonia || ""}`);
-      doc.text(`Municipio / Alcaldía: ${domRep.municipio || ""}`);
-      doc.text(`Estado: ${domRep.estado || ""}`);
-      doc.text(`País: ${domRep.pais || ""}`);
-
-      doc.moveDown();
+      twoCol(
+        [
+          ["Calle", domRep.calle],
+          ["No. exterior", domRep.numExterior],
+          ["No. interior", domRep.numInterior],
+          ["CP", domRep.cp],
+        ],
+        [
+          ["Colonia / Asentamiento", domRep.colonia],
+          ["Municipio / Alcaldía", domRep.municipio],
+          ["Estado", domRep.estado],
+          ["País", domRep.pais],
+        ]
+      );
 
       // Acta constitutiva
+      title("Acta constitutiva");
       const acta = proveedor.actaConstitutiva || {};
       const notarioActa = acta.notario || {};
-
-      doc.fontSize(14).text("Acta Constitutiva", { underline: true });
-      doc.fontSize(12);
-      doc.text(`Número de escritura: ${acta.numEscritura || ""}`);
-      doc.text(`Fecha de constitución: ${acta.fechaConstitucion || ""}`);
-      doc.text(`Número de notaría: ${acta.numNotaria || ""}`);
-      doc.text(`Estado notaría: ${acta.estadoNotaria || ""}`);
-
       const nombreNotarioActa = [
         notarioActa.apellidoPaterno || "",
         notarioActa.apellidoMaterno || "",
         notarioActa.nombre || "",
         notarioActa.otrosNombres || "",
-      ]
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim();
+      ].join(" ").replace(/\s+/g, " ").trim();
 
-      doc.text(`Notario: ${nombreNotarioActa}`);
-
+      twoCol(
+        [
+          ["No. escritura", acta.numEscritura],
+          ["Fecha constitución", acta.fechaConstitucion],
+        ],
+        [
+          ["No. notaría", acta.numNotaria],
+          ["Estado notaría", acta.estadoNotaria],
+        ]
+      );
+      kv("Notario", nombreNotarioActa);
       doc.moveDown();
 
-      // Poder del representante (si hay datos)
+      // Poder (solo si hay)
       const poder = proveedor.poderRepresentante || {};
       const notarioPoder = poder.notario || {};
       const hasPoder =
@@ -285,24 +396,25 @@ async function generarHojaProveedorController(req, res, next) {
         notarioPoder.nombre;
 
       if (hasPoder) {
-        doc.fontSize(14).text("Poder del Representante", { underline: true });
-        doc.fontSize(12);
-        doc.text(`Número de escritura: ${poder.numEscritura || ""}`);
-        doc.text(`Fecha: ${poder.fechaConstitucion || ""}`);
-        doc.text(`Número de notaría: ${poder.numNotaria || ""}`);
-        doc.text(`Estado notaría: ${poder.estadoNotaria || ""}`);
-
+        title("Poder del representante");
         const nombreNotarioPoder = [
           notarioPoder.apellidoPaterno || "",
           notarioPoder.apellidoMaterno || "",
           notarioPoder.nombre || "",
           notarioPoder.otrosNombres || "",
-        ]
-          .join(" ")
-          .replace(/\s+/g, " ")
-          .trim();
+        ].join(" ").replace(/\s+/g, " ").trim();
 
-        doc.text(`Notario: ${nombreNotarioPoder}`);
+        twoCol(
+          [
+            ["No. escritura", poder.numEscritura],
+            ["Fecha", poder.fechaConstitucion],
+          ],
+          [
+            ["No. notaría", poder.numNotaria],
+            ["Estado notaría", poder.estadoNotaria],
+          ]
+        );
+        kv("Notario", nombreNotarioPoder);
         doc.moveDown();
       }
     }
