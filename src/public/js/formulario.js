@@ -723,11 +723,10 @@ function renderPersonaFisica() {
               <input type="file" name="docPfCumplimientoIMSS" accept="application/pdf" />
             </div>
 
-            <!-- ⚠️ Si INFONAVIT es obligatorio, muévelo a segmento 2 y pon required -->
             <div class="docs-item">
               <label>Constancia de cumplimiento - INFONAVIT (PDF):</label>
               <small class="field-hint">Fecha no mayor a 1 mes</small>
-              <input type="file" name="docPfCumplimientoINFONAVIT" accept="application/pdf" required />
+              <input type="file" name="docPfCumplimientoINFONAVIT" accept="application/pdf" />
             </div>
 
             <div class="docs-item">
